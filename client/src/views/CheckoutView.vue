@@ -107,9 +107,13 @@
 import { reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
+import { useOrdersStore } from '@/stores/orders'
+import { useProductsStore } from '@/stores/products'
 
 const router = useRouter()
 const cartStore = useCartStore()
+const ordersStore = useOrdersStore()
+const productsStore = useProductsStore()
 
 const loading = ref(false)
 const submitError = ref('')
@@ -184,15 +188,30 @@ async function handleSubmit() {
   submitError.value = ''
 
   try {
-    console.log('Checkout payload preview:', {
-      customer_name: form.customer_name,
-      phone: form.phone,
-      shipping_address: form.shipping_address,
+    const payload = {
+      customer_name: form.customer_name.trim(),
+      phone: form.phone.trim(),
+      shipping_address: form.shipping_address.trim(),
       payment_method: form.payment_method,
-      items: cartItems.value,
-    })
+      items: cartItems.value.map((item) => ({
+        product_id: item.id,
+        quantity: item.quantity,
+      })),
+    }
+    await ordersStore.addOrder(payload)
+
+    cartStore.clearCart()
+
+    // refresh produse
+    await productsStore.fetchProducts()
+
+    router.push('/products')
   } catch (error) {
-    submitError.value = 'A aparut o eroare la pregatirea comenzii.'
+    submitError.value =
+      ordersStore.error ||
+      error.response?.data?.message ||
+      error.message ||
+      'A aparut o eroare la plasarea comenzii.'
   } finally {
     loading.value = false
   }
