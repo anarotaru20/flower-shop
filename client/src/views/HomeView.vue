@@ -12,6 +12,7 @@
 
           <div class="hero-actions">
             <RouterLink to="/products" class="btn btn-primary">Vezi produsele</RouterLink>
+            <button class="btn btn-secondary" @click="quizDialog = true">Take the test</button>
             <RouterLink to="/register" class="btn btn-secondary">Creeaza cont</RouterLink>
             <RouterLink to="/login" class="btn btn-ghost">Login</RouterLink>
           </div>
@@ -32,6 +33,44 @@
       </div>
     </section>
 
+    <section v-if="quizResults.length" class="quiz-results-section">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-label">Bloomera Quiz</span>
+          <h2>Your Bloomera matches</h2>
+          <p class="hero-description">
+            Am ales 5 recomandări pe baza răspunsurilor tale. Poți intra direct pe produsul dorit.
+          </p>
+        </div>
+
+        <div class="quiz-results-grid">
+          <article
+            v-for="product in quizResults"
+            :key="product.id"
+            class="quiz-result-card"
+          >
+            <img
+              :src="product.image_url"
+              :alt="product.name"
+              class="quiz-result-image"
+            />
+
+            <div class="quiz-result-content">
+              <h3>{{ product.name }}</h3>
+              <p class="quiz-result-price">{{ product.price }} RON</p>
+              <p class="quiz-result-description">
+                {{ product.description || 'Descoperă un produs ales special pentru preferințele tale.' }}
+              </p>
+
+              <RouterLink :to="`/products/${product.slug}`" class="btn btn-primary">
+                Vezi produsul
+              </RouterLink>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <section class="highlights">
       <div class="container">
         <div class="section-head">
@@ -44,6 +83,11 @@
             <h3>Buchete elegante</h3>
             <p>Flori atent alese pentru aniversări, surprize și gesturi care contează.</p>
           </RouterLink>
+
+          <button class="highlight-card highlight-link highlight-button" @click="quizDialog = true">
+            <h3>Take the test</h3>
+            <p>Răspunde la câteva întrebări și primești 5 recomandări potrivite pentru tine.</p>
+          </button>
 
           <RouterLink to="/register" class="highlight-card highlight-link">
             <h3>Cont Bloomera</h3>
@@ -86,8 +130,140 @@
         </div>
       </div>
     </section>
+
+    <HomeQuizDialog
+      v-model="quizDialog"
+      @complete="handleQuizComplete"
+    />
   </div>
 </template>
+
+<script setup>
+import { onMounted, ref } from 'vue'
+import HomeQuizDialog from '@/components/home/HomeQuizDialog.vue'
+import { useProductsStore } from '@/stores/products'
+
+const productsStore = useProductsStore()
+
+const quizDialog = ref(false)
+const quizResults = ref([])
+
+function normalizeText(value) {
+  return String(value || '').trim().toLowerCase()
+}
+
+function includesAny(text, values) {
+  const normalizedText = normalizeText(text)
+  return values.some((value) => normalizedText.includes(normalizeText(value)))
+}
+
+function scoreQuizProduct(product, result) {
+  let score = 0
+
+  const name = normalizeText(product.name)
+  const description = normalizeText(product.description)
+  const categoryName = normalizeText(product.categories?.name)
+  const searchableText = `${name} ${description} ${categoryName}`
+
+  if (Number(product.stock || 0) > 0) {
+    score += 20
+  } else {
+    score -= 1000
+  }
+
+  const price = Number(product.price || 0)
+
+  if (price >= Number(result.budget_min) && price <= Number(result.budget_max)) {
+    score += 30
+  } else if (price < Number(result.budget_min)) {
+    score += 5
+  } else {
+    score -= 15
+  }
+
+  if (result.preferred_product_type) {
+    if (includesAny(searchableText, [result.preferred_product_type])) {
+      score += 25
+    }
+  }
+
+  if (result.preferred_style) {
+    if (includesAny(searchableText, [result.preferred_style])) {
+      score += 15
+    }
+
+    if (result.preferred_style === 'romantic' && includesAny(searchableText, ['rose', 'trandafir', 'pink', 'roz'])) {
+      score += 10
+    }
+
+    if (result.preferred_style === 'natural' && includesAny(searchableText, ['green', 'verde', 'plant', 'planta'])) {
+      score += 10
+    }
+
+    if (result.preferred_style === 'elegant' && includesAny(searchableText, ['white', 'alb', 'lily', 'crin', 'orchid', 'orhidee'])) {
+      score += 10
+    }
+
+    if (result.preferred_style === 'playful' && includesAny(searchableText, ['colorful', 'multicolor', 'bright', 'vibrant'])) {
+      score += 10
+    }
+
+    if (result.preferred_style === 'luxury' && includesAny(searchableText, ['premium', 'deluxe', 'luxury', 'elegant'])) {
+      score += 10
+    }
+  }
+
+  if (Array.isArray(result.preferred_colors) && result.preferred_colors.length) {
+    const matchedColors = result.preferred_colors.filter((color) =>
+      searchableText.includes(normalizeText(color))
+    ).length
+
+    score += matchedColors * 10
+  }
+
+  if (result.event_type) {
+    if (result.event_type === 'birthday' && includesAny(searchableText, ['birthday', 'joy', 'happy', 'playful', 'vibrant'])) {
+      score += 8
+    }
+
+    if (result.event_type === 'anniversary' && includesAny(searchableText, ['romantic', 'rose', 'elegant', 'luxury'])) {
+      score += 8
+    }
+
+    if (result.event_type === 'just because' && includesAny(searchableText, ['natural', 'soft', 'fresh'])) {
+      score += 8
+    }
+
+    if (result.event_type === 'special event' && includesAny(searchableText, ['premium', 'box', 'luxury', 'elegant'])) {
+      score += 8
+    }
+
+    if (result.event_type === 'sympathy' && includesAny(searchableText, ['white', 'alb', 'neutral', 'minimal'])) {
+      score += 8
+    }
+  }
+
+  return score
+}
+
+function handleQuizComplete(result) {
+  const products = productsStore.products || []
+
+  quizResults.value = products
+    .map((product) => ({
+      ...product,
+      score: scoreQuizProduct(product, result),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5)
+}
+
+onMounted(async () => {
+  if (!productsStore.products?.length) {
+    await productsStore.fetchProducts()
+  }
+})
+</script>
 
 <style scoped>
 .home {
@@ -345,5 +521,12 @@
 .highlight-link:hover {
   transform: translateY(-3px);
   box-shadow: 0 16px 28px rgba(175, 145, 137, 0.12);
+}
+.quiz-result-image {
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 14px;
+  margin: 0 auto;
 }
 </style>

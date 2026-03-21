@@ -232,7 +232,9 @@
                         <div v-if="!beneficiariesStore.list.length" class="empty-state">
                           <div class="empty-icon">💐</div>
                           <h4>No beneficiaries yet</h4>
-                          <p>Add your first beneficiary to reuse their preferences for future events.</p>
+                          <p>
+                            Add your first beneficiary to reuse their preferences for future events.
+                          </p>
                         </div>
 
                         <div v-else class="cards-list">
@@ -277,12 +279,16 @@
 
                               <div class="detail-row">
                                 <span class="detail-label">Preferred style</span>
-                                <span class="detail-value">{{ beneficiary.preferred_style || '-' }}</span>
+                                <span class="detail-value">{{
+                                  beneficiary.preferred_style || '-'
+                                }}</span>
                               </div>
 
                               <div class="detail-row">
                                 <span class="detail-label">Preferred type</span>
-                                <span class="detail-value">{{ beneficiary.preferred_product_type || '-' }}</span>
+                                <span class="detail-value">{{
+                                  beneficiary.preferred_product_type || '-'
+                                }}</span>
                               </div>
 
                               <div class="detail-row">
@@ -361,7 +367,9 @@
 
                               <div class="detail-row">
                                 <span class="detail-label">Reminder days before</span>
-                                <span class="detail-value">{{ event.reminder_days_before ?? 4 }}</span>
+                                <span class="detail-value">{{
+                                  event.reminder_days_before ?? 4
+                                }}</span>
                               </div>
 
                               <div class="detail-row">
@@ -379,7 +387,9 @@
                           <li>Add a beneficiary once and reuse it for future events.</li>
                           <li>Create an event and connect it to a beneficiary profile.</li>
                           <li>Set how many days before the reminder should trigger.</li>
-                          <li>Use saved preferences later for personalized product recommendations.</li>
+                          <li>
+                            Use saved preferences later for personalized product recommendations.
+                          </li>
                         </ul>
                       </div>
                     </div>
@@ -417,6 +427,26 @@
                   variant="outlined"
                   density="comfortable"
                 />
+              </v-col>
+
+              <v-col cols="12">
+                <div class="quiz-helper">
+                  <div class="quiz-helper-text">
+                    <h4>Not sure what to fill in?</h4>
+                    <p>
+                      We can help you with a few quick questions and suggest the beneficiary
+                      preferences automatically.
+                    </p>
+                  </div>
+
+                  <v-btn
+                    variant="outlined"
+                    class="quiz-helper-btn"
+                    @click="beneficiaryQuizDialog = true"
+                  >
+                    Start quiz
+                  </v-btn>
+                </div>
               </v-col>
 
               <v-col cols="12" md="6">
@@ -585,11 +615,13 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+    <BeneficiaryQuizDialog v-model="beneficiaryQuizDialog" @complete="handleQuizComplete" />
   </v-container>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import BeneficiaryQuizDialog from '@/components/profile/BeneficiaryQuizDialog.vue'
 import { useProfileStore } from '@/stores/profile'
 import { useBeneficiariesStore } from '@/stores/beneficiaries'
 import { useEventsStore } from '@/stores/events'
@@ -598,6 +630,7 @@ const profileStore = useProfileStore()
 const beneficiariesStore = useBeneficiariesStore()
 const eventsStore = useEventsStore()
 
+const beneficiaryQuizDialog = ref(false)
 const activeSection = ref('account')
 const successMessage = ref('')
 const reminderSuccessMessage = ref('')
@@ -649,7 +682,7 @@ const beneficiaryOptions = computed(() =>
   beneficiariesStore.list.map((beneficiary) => ({
     title: beneficiary.name,
     value: beneficiary.id,
-  }))
+  })),
 )
 
 const displayName = computed(() => {
@@ -736,6 +769,16 @@ function openAddBeneficiaryDialog() {
   beneficiaryDialog.value = true
 }
 
+function handleQuizComplete(result) {
+  beneficiaryForm.preferred_colors_text = Array.isArray(result.preferred_colors)
+    ? result.preferred_colors.join(', ')
+    : ''
+  beneficiaryForm.preferred_style = result.preferred_style || ''
+  beneficiaryForm.preferred_product_type = result.preferred_product_type || ''
+  beneficiaryForm.budget_min = result.budget_min ?? ''
+  beneficiaryForm.budget_max = result.budget_max ?? ''
+}
+
 function openEditBeneficiaryDialog(beneficiary) {
   reminderSuccessMessage.value = ''
   beneficiaryEditId.value = beneficiary.id
@@ -808,8 +851,7 @@ async function handleProfileSubmit() {
 
     syncProfileForm()
     successMessage.value = 'Profile updated successfully.'
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 async function handleSaveBeneficiary() {
@@ -840,8 +882,7 @@ async function handleSaveBeneficiary() {
     reminderSuccessMessage.value = beneficiaryEditId.value
       ? 'Beneficiary updated successfully.'
       : 'Beneficiary added successfully.'
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 async function handleSaveEvent() {
@@ -869,8 +910,7 @@ async function handleSaveEvent() {
     reminderSuccessMessage.value = wasEdit
       ? 'Event updated successfully.'
       : 'Event added successfully. The reminder will be sent automatically.'
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 async function handleDeleteBeneficiary(beneficiary) {
@@ -882,13 +922,12 @@ async function handleDeleteBeneficiary(beneficiary) {
   try {
     await beneficiariesStore.removeBeneficiary(beneficiary.id)
     reminderSuccessMessage.value = 'Beneficiary deleted successfully.'
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 async function handleDeleteEvent(event) {
   const confirmed = window.confirm(
-    `Delete event "${beautifyEventType(event.event_type)}" for ${getBeneficiaryName(event.beneficiary_id)}?`
+    `Delete event "${beautifyEventType(event.event_type)}" for ${getBeneficiaryName(event.beneficiary_id)}?`,
   )
   if (!confirmed) return
 
@@ -897,8 +936,7 @@ async function handleDeleteEvent(event) {
   try {
     await eventsStore.removeEvent(event.id)
     reminderSuccessMessage.value = 'Event deleted successfully.'
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 watch(
@@ -906,16 +944,13 @@ watch(
   () => {
     syncProfileForm()
   },
-  { deep: true }
+  { deep: true },
 )
 
 onMounted(async () => {
   await profileStore.fetchProfile()
   syncProfileForm()
-  await Promise.all([
-    beneficiariesStore.fetchBeneficiaries(),
-    eventsStore.fetchEvents(),
-  ])
+  await Promise.all([beneficiariesStore.fetchBeneficiaries(), eventsStore.fetchEvents()])
 })
 </script>
 
@@ -1266,6 +1301,43 @@ onMounted(async () => {
   border-radius: 14px;
   text-transform: none;
   font-weight: 600;
+}
+
+.quiz-helper {
+  border: 1px solid #ece7f6;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #fff8fb, #faf7ff);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.quiz-helper-text h4 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  color: #1f2937;
+}
+
+.quiz-helper-text p {
+  margin: 0;
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.quiz-helper-btn {
+  border-radius: 999px;
+  text-transform: none;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .quiz-helper {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 1100px) {
