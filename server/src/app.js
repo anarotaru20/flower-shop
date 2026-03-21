@@ -53,6 +53,10 @@ app.use("/payments", payments);
 const { runReminderJob } = require("./jobs/reminderJob");
 runReminderJob();
 
+// QR Codes
+const qr = require("./routes/qr");
+app.use("/qr", qr);
+
 app.use((req, res) => {
   logger.warn(`Route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({ message: "Route not found" });
