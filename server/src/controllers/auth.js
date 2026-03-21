@@ -103,8 +103,44 @@ async function forgotPassword(req, res, next) {
   }
 }
 
+async function resetPassword(req, res, next) {
+  try {
+    const { access_token, refresh_token, password } = req.body;
+
+    if (!access_token || !refresh_token || !password) {
+      return res.status(400).json({
+        message: "access_token, refresh_token and password are required",
+      });
+    }
+
+    const { error: sessionError } = await supabase.auth.setSession({
+      access_token,
+      refresh_token,
+    });
+
+    if (sessionError) {
+      return res.status(400).json({ message: sessionError.message });
+    }
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      password,
+    });
+
+    if (updateError) {
+      return res.status(400).json({ message: updateError.message });
+    }
+
+    return res.status(200).json({
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   register,
   login,
   forgotPassword,
+  resetPassword,
 };

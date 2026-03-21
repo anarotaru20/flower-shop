@@ -11,6 +11,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // Routes
 // Auth
 const auth = require("./routes/auth");
@@ -39,7 +44,6 @@ app.use("/categories", categories);
 // Orders
 const orders = require("./routes/orders");
 app.use("/orders", orders);
-
 
 app.use((req, res) => {
   logger.warn(`Route not found: ${req.method} ${req.originalUrl}`);
