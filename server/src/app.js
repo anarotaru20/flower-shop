@@ -20,6 +20,10 @@ app.use(auth);
 const profile = require("./routes/profile");
 app.use(profile);
 
+// Beneficiaries
+const beneficiaries = require("./routes/beneficiaries");
+app.use(beneficiaries);
+
 // Products
 const products = require("./routes/products");
 app.use("/products", products);
