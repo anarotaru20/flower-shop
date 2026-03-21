@@ -59,6 +59,10 @@
                   <v-radio label="Card" value="card" color="primary" />
                 </v-radio-group>
 
+                <div v-if="showStripePayment && createdOrderId" class="mt-4">
+                  <StripePaymentForm :order-id="createdOrderId" @paid="handleStripePaid" />
+                </div>
+
                 <v-alert v-if="submitError" type="error" variant="tonal" class="mb-4">
                   {{ submitError }}
                 </v-alert>
@@ -66,7 +70,9 @@
                 <div class="actions">
                   <v-btn variant="outlined" @click="goBackToCart"> Inapoi la cos </v-btn>
 
-                  <v-btn color="primary" type="submit" :loading="loading"> Plaseaza comanda </v-btn>
+                  <v-btn v-if="!showStripePayment" color="primary" type="submit" :loading="loading">
+                    {{ form.payment_method === 'card' ? 'Continua la plata' : 'Plaseaza comanda' }}
+                  </v-btn>
                 </div>
               </v-form>
             </v-card-text>
@@ -109,12 +115,15 @@ import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { useOrdersStore } from '@/stores/orders'
 import { useProductsStore } from '@/stores/products'
+import StripePaymentForm from '@/components/checkout/StripePaymentForm.vue'
 
 const router = useRouter()
 const cartStore = useCartStore()
 const ordersStore = useOrdersStore()
 const productsStore = useProductsStore()
 
+const createdOrderId = ref('')
+const showStripePayment = ref(false)
 const loading = ref(false)
 const submitError = ref('')
 
@@ -198,13 +207,17 @@ async function handleSubmit() {
         quantity: item.quantity,
       })),
     }
-    await ordersStore.addOrder(payload)
+
+    const order = await ordersStore.addOrder(payload)
+
+    if (form.payment_method === 'card') {
+      createdOrderId.value = order.id
+      showStripePayment.value = true
+      return
+    }
 
     cartStore.clearCart()
-
-    // refresh produse
     await productsStore.fetchProducts()
-
     router.push('/orders')
   } catch (error) {
     submitError.value =
@@ -215,6 +228,12 @@ async function handleSubmit() {
   } finally {
     loading.value = false
   }
+}
+
+async function handleStripePaid() {
+  cartStore.clearCart()
+  await productsStore.fetchProducts()
+  router.push('/orders')
 }
 </script>
 

@@ -45,6 +45,10 @@ app.use("/categories", categories);
 const orders = require("./routes/orders");
 app.use("/orders", orders);
 
+// Payments
+const payments = require("./routes/payments");
+app.use("/payments", payments);
+
 app.use((req, res) => {
   logger.warn(`Route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({ message: "Route not found" });
