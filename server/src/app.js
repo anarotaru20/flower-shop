@@ -36,6 +36,9 @@ app.use("/products", products);
 const categories = require("./routes/categories");
 app.use("/categories", categories);
 
+// Orders
+const orders = require("./routes/orders");
+app.use("/orders", orders);
 
 
 app.use((req, res) => {
