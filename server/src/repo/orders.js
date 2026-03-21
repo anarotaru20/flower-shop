@@ -1,56 +1,56 @@
 const supabase = require("../config/db");
 
 async function createOrder(userId, payload) {
-  const { customer_name, phone, shipping_address, payment_method, items } =
-    payload;
+  const { customer_name, phone, shipping_address, payment_method, items } = payload
 
   if (!Array.isArray(items) || items.length === 0) {
-    throw new Error("No items provided");
+    throw new Error("No items provided")
   }
 
-  const productIds = items.map((item) => item.product_id);
+  const productIds = items.map((item) => item.product_id)
 
   const { data: products, error: productsError } = await supabase
     .from("products")
     .select("id, name, price, stock")
-    .in("id", productIds);
+    .in("id", productIds)
 
-  if (productsError) throw productsError;
+  if (productsError) throw productsError
 
-  let subtotal = 0;
-  const taxRate = 0.19;
+  let subtotal = 0
+  const taxRate = 0.19
 
   const orderItemsToInsert = items.map((item) => {
-    const product = products.find((p) => p.id === item.product_id);
+    const product = products.find((p) => p.id === item.product_id)
 
     if (!product) {
-      throw new Error(`Product not found: ${item.product_id}`);
+      throw new Error(`Product not found: ${item.product_id}`)
     }
 
-    const quantity = Number(item.quantity) || 1;
+    const quantity = Number(item.quantity) || 1
 
     if (quantity <= 0) {
-      throw new Error("Quantity must be greater than 0");
+      throw new Error("Quantity must be greater than 0")
     }
 
-    if (product.stock < quantity) {
-      throw new Error(`Not enough stock for product: ${product.name}`);
+    if (Number(product.stock) < quantity) {
+      throw new Error(`Not enough stock for product: ${product.name}`)
     }
 
-    const unitPrice = Number(product.price);
-    subtotal += unitPrice * quantity;
+    const unitPrice = Number(product.price)
+    subtotal += unitPrice * quantity
 
     return {
       product_id: product.id,
       product_name: product.name,
       quantity,
       price: unitPrice,
-    };
-  });
+      new_stock: Number(product.stock) - quantity,
+    }
+  })
 
-  const tax_amount = Number((subtotal * taxRate).toFixed(2));
-  const total = Number((subtotal + tax_amount).toFixed(2));
-  const invoice_number = `INV-${Date.now()}`;
+  const tax_amount = Number((subtotal * taxRate).toFixed(2))
+  const total = Number((subtotal + tax_amount).toFixed(2))
+  const invoice_number = `INV-${Date.now()}`
 
   const { data: order, error: orderError } = await supabase
     .from("orders")
@@ -67,8 +67,7 @@ async function createOrder(userId, payload) {
       total,
       invoice_number,
     })
-    .select(
-      `
+    .select(`
       id,
       user_id,
       customer_name,
@@ -84,20 +83,23 @@ async function createOrder(userId, payload) {
       stripe_payment_intent_id,
       paid_at,
       created_at
-    `,
-    )
-    .single();
+    `)
+    .single()
 
-  if (orderError) throw orderError;
+  if (orderError) throw orderError
 
   const itemsWithOrderId = orderItemsToInsert.map((item) => ({
     order_id: order.id,
-    ...item,
-  }));
+    product_id: item.product_id,
+    product_name: item.product_name,
+    quantity: item.quantity,
+    price: item.price,
+  }))
 
   const { data: orderItems, error: orderItemsError } = await supabase
     .from("order_items")
-    .insert(itemsWithOrderId).select(`
+    .insert(itemsWithOrderId)
+    .select(`
       id,
       order_id,
       product_id,
@@ -105,14 +107,23 @@ async function createOrder(userId, payload) {
       quantity,
       price,
       created_at
-    `);
+    `)
 
-  if (orderItemsError) throw orderItemsError;
+  if (orderItemsError) throw orderItemsError
+
+  for (const item of orderItemsToInsert) {
+    const { error: stockError } = await supabase
+      .from("products")
+      .update({ stock: item.new_stock })
+      .eq("id", item.product_id)
+
+    if (stockError) throw stockError
+  }
 
   return {
     ...order,
     order_items: orderItems,
-  };
+  }
 }
 
 async function getOrdersByUserId(userId) {
