@@ -22,7 +22,21 @@ async function getOrders(req, res, next) {
   }
 }
 
+async function cancelOrder(req, res, next) {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    const data = await ordersRepo.cancelOrder(id, userId);
+
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   createOrder,
   getOrders,
+  cancelOrder,
 };

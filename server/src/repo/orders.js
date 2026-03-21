@@ -1,13 +1,8 @@
 const supabase = require("../config/db");
 
 async function createOrder(userId, payload) {
-  const {
-    customer_name,
-    phone,
-    shipping_address,
-    payment_method,
-    items,
-  } = payload;
+  const { customer_name, phone, shipping_address, payment_method, items } =
+    payload;
 
   if (!Array.isArray(items) || items.length === 0) {
     throw new Error("No items provided");
@@ -60,7 +55,8 @@ async function createOrder(userId, payload) {
       payment_method,
       total,
     })
-    .select(`
+    .select(
+      `
       id,
       user_id,
       customer_name,
@@ -70,7 +66,8 @@ async function createOrder(userId, payload) {
       status,
       total,
       created_at
-    `)
+    `,
+    )
     .single();
 
   if (orderError) throw orderError;
@@ -82,8 +79,7 @@ async function createOrder(userId, payload) {
 
   const { data: orderItems, error: orderItemsError } = await supabase
     .from("order_items")
-    .insert(itemsWithOrderId)
-    .select(`
+    .insert(itemsWithOrderId).select(`
       id,
       order_id,
       product_id,
@@ -103,7 +99,8 @@ async function createOrder(userId, payload) {
 async function getOrdersByUserId(userId) {
   const { data, error } = await supabase
     .from("orders")
-    .select(`
+    .select(
+      `
       id,
       user_id,
       customer_name,
@@ -128,9 +125,24 @@ async function getOrdersByUserId(userId) {
           image_url
         )
       )
-    `)
+    `,
+    )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  return data;
+}
+
+async function cancelOrder(orderId, userId) {
+  const { data, error } = await supabase
+    .from("orders")
+    .update({ status: "cancelled" })
+    .eq("id", orderId)
+    .eq("user_id", userId)
+    .select()
+    .single();
 
   if (error) throw error;
 
@@ -140,4 +152,5 @@ async function getOrdersByUserId(userId) {
 module.exports = {
   createOrder,
   getOrdersByUserId,
+  cancelOrder,
 };
