@@ -24,6 +24,10 @@ app.use(profile);
 const beneficiaries = require("./routes/beneficiaries");
 app.use(beneficiaries);
 
+// Events
+const events = require("./routes/events");
+app.use(events);
+
 // Products
 const products = require("./routes/products");
 app.use("/products", products);
