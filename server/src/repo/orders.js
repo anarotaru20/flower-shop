@@ -17,7 +17,8 @@ async function createOrder(userId, payload) {
 
   if (productsError) throw productsError;
 
-  let total = 0;
+  let subtotal = 0;
+  const taxRate = 0.19;
 
   const orderItemsToInsert = items.map((item) => {
     const product = products.find((p) => p.id === item.product_id);
@@ -36,14 +37,20 @@ async function createOrder(userId, payload) {
       throw new Error(`Not enough stock for product: ${product.name}`);
     }
 
-    total += Number(product.price) * quantity;
+    const unitPrice = Number(product.price);
+    subtotal += unitPrice * quantity;
 
     return {
       product_id: product.id,
+      product_name: product.name,
       quantity,
-      price: product.price,
+      price: unitPrice,
     };
   });
+
+  const tax_amount = Number((subtotal * taxRate).toFixed(2));
+  const total = Number((subtotal + tax_amount).toFixed(2));
+  const invoice_number = `INV-${Date.now()}`;
 
   const { data: order, error: orderError } = await supabase
     .from("orders")
@@ -53,7 +60,12 @@ async function createOrder(userId, payload) {
       phone,
       shipping_address,
       payment_method,
+      status: "pending",
+      payment_status: "unpaid",
+      subtotal,
+      tax_amount,
       total,
+      invoice_number,
     })
     .select(
       `
@@ -64,7 +76,13 @@ async function createOrder(userId, payload) {
       shipping_address,
       payment_method,
       status,
+      payment_status,
+      subtotal,
+      tax_amount,
       total,
+      invoice_number,
+      stripe_payment_intent_id,
+      paid_at,
       created_at
     `,
     )
@@ -83,6 +101,7 @@ async function createOrder(userId, payload) {
       id,
       order_id,
       product_id,
+      product_name,
       quantity,
       price,
       created_at
@@ -108,12 +127,19 @@ async function getOrdersByUserId(userId) {
       shipping_address,
       payment_method,
       status,
+      payment_status,
+      subtotal,
+      tax_amount,
       total,
+      invoice_number,
+      stripe_payment_intent_id,
+      paid_at,
       created_at,
       order_items (
         id,
         order_id,
         product_id,
+        product_name,
         quantity,
         price,
         created_at,
