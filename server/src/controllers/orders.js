@@ -1,36 +1,28 @@
 const ordersRepo = require("../repo/orders");
 
-async function createOrder(req, res) {
+async function createOrder(req, res, next) {
   try {
-    const user_id = req.user.id;
-    const { items } = req.body;
+    const userId = req.user.id;
+    const data = await ordersRepo.createOrder(userId, req.body);
 
-    const result = await ordersRepo.createOrder(user_id, items);
-
-    res.json({
-      message: "Order created",
-      order_id: result.order.id,
-      total: result.total,
-    });
-  } catch (err) {
-    res.status(500).json({
-      message: err.message,
-    });
+    res.status(201).json(data);
+  } catch (error) {
+    next(error);
   }
 }
 
-async function getOrders(req, res) {
+async function getOrders(req, res, next) {
   try {
-    const user_id = req.user.id;
+    const userId = req.user.id;
+    const data = await ordersRepo.getOrdersByUserId(userId);
 
-    const data = await ordersRepo.getOrders(user_id);
-
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({
-      message: err.message,
-    });
+    res.status(200).json(data);
+  } catch (error) {
+    next(error);
   }
 }
 
-module.exports = { createOrder, getOrders };
+module.exports = {
+  createOrder,
+  getOrders,
+};
