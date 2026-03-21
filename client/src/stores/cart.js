@@ -6,8 +6,7 @@ export const useCartStore = defineStore('cart', {
   }),
 
   getters: {
-    cartCount: (state) =>
-      state.items.reduce((total, item) => total + item.quantity, 0),
+    cartCount: (state) => state.items.reduce((total, item) => total + item.quantity, 0),
 
     cartTotal: (state) =>
       state.items.reduce((total, item) => total + Number(item.price) * item.quantity, 0),
@@ -20,8 +19,12 @@ export const useCartStore = defineStore('cart', {
 
     addToCart(product) {
       const existingItem = this.items.find((item) => item.id === product.id)
+      const resolvedCategorySlug = product.categories?.slug || product.category_slug || null
 
       if (existingItem) {
+        existingItem.category_id = existingItem.category_id || product.category_id || null
+        existingItem.category_slug = existingItem.category_slug || resolvedCategorySlug
+
         if (existingItem.quantity < Number(product.stock)) {
           existingItem.quantity += 1
         }
@@ -33,6 +36,8 @@ export const useCartStore = defineStore('cart', {
           price: Number(product.price),
           stock: Number(product.stock),
           quantity: 1,
+          category_id: product.category_id || null,
+          category_slug: resolvedCategorySlug,
         })
       }
 

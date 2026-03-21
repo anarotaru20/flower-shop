@@ -6,10 +6,40 @@
         <p class="checkout-subtitle">Completeaza datele pentru plasarea comenzii</p>
       </div>
 
-      <div v-if="!cartItems.length" class="empty-cart">
+      <div v-if="!cartItems.length && !orderPlaced" class="empty-cart">
         <v-alert type="warning" variant="tonal"> Cosul tau este gol. </v-alert>
 
         <v-btn color="primary" class="mt-4" @click="goToProducts"> Mergi la produse </v-btn>
+      </div>
+
+      <div v-else-if="orderPlaced" class="success-wrapper">
+        <v-card class="checkout-card success-card" elevation="0">
+          <v-card-title class="section-title">Comanda a fost plasata cu succes</v-card-title>
+
+          <v-card-text>
+            <p class="success-text">
+              Comanda ta a fost inregistrata. Mai jos poti vedea codul QR generat pentru mesajul
+              plantei.
+            </p>
+
+            <div v-if="qrImage" class="qr-preview">
+              <img :src="qrImage" alt="QR Code" class="qr-image" />
+
+              <div class="qr-actions">
+                <v-btn color="primary" @click="goToQrPage">Vezi pagina QR</v-btn>
+              </div>
+            </div>
+
+            <v-alert v-else type="info" variant="tonal" class="mt-4">
+              Comanda a fost plasata, dar nu exista un QR disponibil pentru aceasta comanda.
+            </v-alert>
+
+            <div class="actions mt-6">
+              <v-btn variant="outlined" @click="goToProducts">Continua cumparaturile</v-btn>
+              <v-btn color="primary" @click="goToOrders">Vezi comenzile</v-btn>
+            </div>
+          </v-card-text>
+        </v-card>
       </div>
 
       <v-row v-else class="mt-2" align="start">
@@ -45,6 +75,18 @@
                   rows="4"
                   class="mb-3"
                   :error-messages="errors.shipping_address"
+                />
+
+                <v-textarea
+                  v-if="hasEligibleQrProducts"
+                  v-model="form.gift_message"
+                  label="Mesaj pentru plante / buchet"
+                  variant="outlined"
+                  density="comfortable"
+                  rows="4"
+                  class="mb-3"
+                  placeholder="Scrie un mesaj dragut care va fi afisat dupa scanarea codului QR"
+                  counter="300"
                 />
 
                 <div class="payment-label">Metoda de plata</div>
@@ -110,27 +152,34 @@
 </template>
 
 <script setup>
-import { reactive, ref, computed } from 'vue'
+import { reactive, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { useCartStore } from '@/stores/cart'
 import { useOrdersStore } from '@/stores/orders'
 import { useProductsStore } from '@/stores/products'
+import { useQrStore } from '@/stores/qr'
 import StripePaymentForm from '@/components/checkout/StripePaymentForm.vue'
 
 const router = useRouter()
 const cartStore = useCartStore()
 const ordersStore = useOrdersStore()
 const productsStore = useProductsStore()
+const qrStore = useQrStore()
+
+const { qr } = storeToRefs(qrStore)
 
 const createdOrderId = ref('')
 const showStripePayment = ref(false)
 const loading = ref(false)
 const submitError = ref('')
+const orderPlaced = ref(false)
 
 const form = reactive({
   customer_name: '',
   phone: '',
   shipping_address: '',
+  gift_message: '',
   payment_method: 'cash',
 })
 
@@ -143,6 +192,25 @@ const errors = reactive({
 
 const cartItems = computed(() => cartStore.items)
 const cartTotal = computed(() => cartStore.cartTotal)
+const hasEligibleQrProducts = computed(() =>
+  cartItems.value.some(
+    (item) =>
+      item.category_slug === 'plante-interior' ||
+      item.category_slug === 'plante-propagare' ||
+      item.category_slug === 'buchete-flori' ||
+      item.category_slug === 'aranjamente-florale',
+  ),
+)
+const qrImage = computed(() => qr.value?.qr_image || '')
+const qrPath = computed(() => {
+  if (!qr.value?.token) return ''
+  return `/qr/${qr.value.token}`
+})
+
+function goToQrPage() {
+  if (!qrPath.value) return
+  router.push(qrPath.value)
+}
 
 function formatPrice(value) {
   return `${Number(value).toFixed(2)} lei`
@@ -190,17 +258,42 @@ function goToProducts() {
   router.push('/products')
 }
 
+function goToOrders() {
+  router.push('/orders')
+}
+
+async function generateQrForOrder(orderId) {
+  try {
+    if (!form.gift_message.trim()) return
+
+    await qrStore.createQr({
+      order_id: orderId,
+      message: form.gift_message.trim(),
+    })
+  } catch (qrError) {
+    console.error('QR generation failed:', qrError)
+  }
+}
+
+watch(hasEligibleQrProducts, (value) => {
+  if (!value) {
+    form.gift_message = ''
+  }
+})
+
 async function handleSubmit() {
   if (!validateForm()) return
 
   loading.value = true
   submitError.value = ''
+  qrStore.clearQr()
 
   try {
     const payload = {
       customer_name: form.customer_name.trim(),
       phone: form.phone.trim(),
       shipping_address: form.shipping_address.trim(),
+      gift_message: form.gift_message.trim(),
       payment_method: form.payment_method,
       items: cartItems.value.map((item) => ({
         product_id: item.id,
@@ -210,6 +303,8 @@ async function handleSubmit() {
 
     const order = await ordersStore.addOrder(payload)
 
+    await generateQrForOrder(order.id)
+
     if (form.payment_method === 'card') {
       createdOrderId.value = order.id
       showStripePayment.value = true
@@ -218,7 +313,7 @@ async function handleSubmit() {
 
     cartStore.clearCart()
     await productsStore.fetchProducts()
-    router.push('/orders')
+    orderPlaced.value = true
   } catch (error) {
     submitError.value =
       ordersStore.error ||
@@ -233,7 +328,7 @@ async function handleSubmit() {
 async function handleStripePaid() {
   cartStore.clearCart()
   await productsStore.fetchProducts()
-  router.push('/orders')
+  orderPlaced.value = true
 }
 </script>
 
@@ -321,6 +416,7 @@ async function handleStripePaid() {
 .empty-cart {
   max-width: 500px;
 }
+
 .payment-radio-group {
   padding: 8px 0 4px;
 }
@@ -333,5 +429,45 @@ async function handleStripePaid() {
   opacity: 1;
   color: #111827;
   font-size: 15px;
+}
+
+.success-wrapper {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.success-card {
+  padding-bottom: 8px;
+}
+
+.success-text {
+  color: #4b5563;
+  margin: 0 0 20px;
+}
+
+.qr-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid #f1f5f9;
+}
+
+.qr-image {
+  width: 240px;
+  height: 240px;
+  object-fit: contain;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.qr-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 </style>

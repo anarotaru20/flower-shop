@@ -10,6 +10,7 @@ import CartView from '@/views/CartView.vue'
 import CheckoutView from '@/views/CheckoutView.vue'
 import OrdersView from '@/views/OrdersView.vue'
 import ProfileView from '@/views/ProfileView.vue'
+import QrView from '@/views/QrView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -70,6 +71,11 @@ const router = createRouter({
       component: ProfileView,
       meta: { requiresAuth: true }
     },
+    {
+  path: '/qr/:token',
+  name: 'qr',
+  component: QrView,
+},
   ],
 })
 
