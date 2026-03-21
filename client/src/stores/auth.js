@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { registerUser, loginUser, forgotPassword } from '@/services/auth'
+import { registerUser, loginUser, forgotPassword, resetPassword } from '@/services/auth'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -52,12 +52,15 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const data = await loginUser(payload)
+        const accessToken = data?.session?.access_token ?? null
 
-        this.token = data?.token || null
-        this.user = data?.user || null
+        this.token = accessToken
+        this.user = data?.user ?? null
 
         if (this.token) {
           localStorage.setItem('token', this.token)
+        } else {
+          localStorage.removeItem('token')
         }
 
         this.successMessage = data?.message || 'Autentificare reusita.'

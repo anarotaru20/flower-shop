@@ -13,7 +13,7 @@
           </span>
         </RouterLink>
 
-        <template v-if="auth.isAuthenticated">
+        <template v-if="isAuthenticated">
           <RouterLink to="/profile">Profile</RouterLink>
           <RouterLink to="/orders">Orders</RouterLink>
           <button class="logout-btn" @click="handleLogout">Logout</button>
@@ -22,7 +22,6 @@
         <template v-else>
           <RouterLink to="/login">Login</RouterLink>
           <RouterLink to="/register">Register</RouterLink>
-          <RouterLink to="/"  @click="handleLogout">Logout</RouterLink>
         </template>
       </nav>
     </div>
@@ -30,6 +29,7 @@
 </template>
 
 <script setup>
+import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
@@ -37,6 +37,8 @@ import { useCartStore } from '@/stores/cart'
 const router = useRouter()
 const auth = useAuthStore()
 const cart = useCartStore()
+
+const { isAuthenticated, token, user } = storeToRefs(auth)
 
 function handleLogout() {
   auth.logout()

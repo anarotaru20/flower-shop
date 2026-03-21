@@ -18,21 +18,24 @@ async function getProfile(req, res, next) {
 
 async function updateProfile(req, res, next) {
   try {
-    const userId = req.user.id;
-    const { username, address } = req.body;
+    const userId = req.user.id
+    const { username, first_name, last_name, birth_date, address } = req.body
 
     const updatedProfile = await profileRepo.updateProfileById(userId, {
       username,
+      first_name,
+      last_name,
+      birth_date,
       address,
-    });
+    })
 
     if (!updatedProfile) {
-      return res.status(404).json({ message: "Profile not found" });
+      return res.status(404).json({ message: 'Profile not found' })
     }
 
-    res.status(200).json(updatedProfile);
+    res.status(200).json(updatedProfile)
   } catch (error) {
-    next(error);
+    next(error)
   }
 }
 
