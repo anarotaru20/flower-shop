@@ -205,7 +205,7 @@ async function handleSubmit() {
     // refresh produse
     await productsStore.fetchProducts()
 
-    router.push('/products')
+    router.push('/orders')
   } catch (error) {
     submitError.value =
       ordersStore.error ||
