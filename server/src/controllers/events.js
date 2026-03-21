@@ -40,8 +40,26 @@ async function deleteEvent(req, res, next) {
   }
 }
 
+async function updateEvent(req, res, next) {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    const data = await repo.updateEventById(id, userId, req.body);
+
+    if (!data) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    res.status(200).json(data);
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getEvents,
   createEvent,
   deleteEvent,
+  updateEvent,
 };

@@ -3,7 +3,8 @@ const supabase = require("../config/db");
 async function getEventsByUserId(userId) {
   const { data, error } = await supabase
     .from("events")
-    .select(`
+    .select(
+      `
       id,
       user_id,
       beneficiary_id,
@@ -17,7 +18,8 @@ async function getEventsByUserId(userId) {
         name,
         relationship
       )
-    `)
+    `,
+    )
     .eq("user_id", userId)
     .order("event_date", { ascending: true });
 
@@ -30,7 +32,8 @@ async function createEvent(payload) {
   const { data, error } = await supabase
     .from("events")
     .insert(payload)
-    .select(`
+    .select(
+      `
       id,
       user_id,
       beneficiary_id,
@@ -39,7 +42,8 @@ async function createEvent(payload) {
       reminder_days_before,
       notes,
       created_at
-    `)
+    `,
+    )
     .single();
 
   if (error) throw error;
@@ -59,8 +63,34 @@ async function deleteEventById(id, userId) {
   return true;
 }
 
+async function updateEventById(id, userId, payload) {
+  const { data, error } = await supabase
+    .from("events")
+    .update(payload)
+    .eq("id", id)
+    .eq("user_id", userId)
+    .select(
+      `
+      id,
+      user_id,
+      beneficiary_id,
+      event_type,
+      event_date,
+      reminder_days_before,
+      notes,
+      created_at
+    `,
+    )
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return data;
+}
+
 module.exports = {
   getEventsByUserId,
   createEvent,
   deleteEventById,
+  updateEventById,
 };

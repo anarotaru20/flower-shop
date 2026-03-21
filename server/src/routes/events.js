@@ -6,6 +6,7 @@ const eventsController = require("../controllers/events");
 
 router.get("/events", auth, eventsController.getEvents);
 router.post("/events", auth, eventsController.createEvent);
+router.put("/events/:id", auth, eventsController.updateEvent);
 router.delete("/events/:id", auth, eventsController.deleteEvent);
 
 module.exports = router;
