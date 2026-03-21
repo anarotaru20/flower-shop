@@ -1,4 +1,5 @@
 const ordersRepo = require("../repo/orders");
+const { generateInvoicePdf } = require("../utils/invoicePdf");
 
 async function createOrder(req, res, next) {
   try {
@@ -35,8 +36,21 @@ async function cancelOrder(req, res, next) {
   }
 }
 
+async function downloadInvoice(req, res, next) {
+  try {
+    const userId = req.user.id
+    const { id } = req.params
+
+    const order = await ordersRepo.getOrderByIdForInvoice(id, userId)
+    generateInvoicePdf(res, order)
+  } catch (error) {
+    next(error)
+  }
+}
+
 module.exports = {
   createOrder,
   getOrders,
   cancelOrder,
+  downloadInvoice,
 };

@@ -9,23 +9,12 @@
         {{ ordersStore.error }}
       </v-alert>
 
-      <v-progress-circular
-        v-if="ordersStore.loading"
-        indeterminate
-        color="primary"
-      />
+      <v-progress-circular v-if="ordersStore.loading" indeterminate color="primary" />
 
       <div v-else>
-        <v-alert v-if="!orders.length" type="info" variant="tonal">
-          Nu ai comenzi inca.
-        </v-alert>
+        <v-alert v-if="!orders.length" type="info" variant="tonal"> Nu ai comenzi inca. </v-alert>
 
-        <v-card
-          v-for="order in orders"
-          :key="order.id"
-          class="mb-4"
-          elevation="1"
-        >
+        <v-card v-for="order in orders" :key="order.id" class="mb-4" elevation="1">
           <v-card-title class="d-flex justify-space-between">
             <div>
               <strong>#{{ order.invoice_number }}</strong>
@@ -39,27 +28,19 @@
                 {{ order.status }}
               </v-chip>
 
-              <v-chip
-                :color="order.payment_status === 'paid' ? 'green' : 'orange'"
-              >
+              <v-chip :color="order.payment_status === 'paid' ? 'green' : 'orange'">
                 {{ order.payment_status }}
               </v-chip>
             </div>
           </v-card-title>
 
           <v-card-text>
-            <div
-              v-for="item in order.order_items"
-              :key="item.id"
-              class="order-item"
-            >
+            <div v-for="item in order.order_items" :key="item.id" class="order-item">
               <div>
                 <div class="item-name">
                   {{ item.product_name || item.products?.name }}
                 </div>
-                <div class="text-caption">
-                  {{ item.quantity }} x {{ formatPrice(item.price) }}
-                </div>
+                <div class="text-caption">{{ item.quantity }} x {{ formatPrice(item.price) }}</div>
               </div>
 
               <div>
@@ -72,6 +53,23 @@
             <div class="order-total">
               Total: <strong>{{ formatPrice(order.total) }}</strong>
             </div>
+            <v-btn
+              variant="outlined"
+              size="small"
+              class="mt-3"
+              @click="handleDownloadInvoice(order.id, order.invoice_number)"
+            >
+              Descarca factura
+            </v-btn>
+            <v-btn
+              v-if="order.status === 'pending'"
+              variant="outlined"
+              size="small"
+              class="mt-3 ml-2"
+              @click="handleCancelOrder(order.id)"
+            >
+              Anuleaza comanda
+            </v-btn>
           </v-card-text>
         </v-card>
       </div>
@@ -98,6 +96,34 @@ function formatDate(date) {
 onMounted(() => {
   ordersStore.fetchOrders()
 })
+
+async function handleDownloadInvoice(orderId, invoiceNumber) {
+  try {
+    const blob = await ordersStore.downloadUserInvoice(orderId)
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+
+    link.href = url
+    link.download = `factura-${invoiceNumber || orderId}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Eroare la descarcarea facturii:', error)
+  }
+}
+
+async function handleCancelOrder(orderId) {
+  if (!confirm('Sigur vrei sa anulezi comanda?')) return
+
+  try {
+    await ordersStore.cancelUserOrder(orderId)
+  } catch (error) {
+    console.error('Eroare la anulare:', error)
+  }
+}
 </script>
 
 <style scoped>

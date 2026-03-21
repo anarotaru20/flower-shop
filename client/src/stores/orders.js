@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { createOrder, getOrders, cancelOrder } from '@/services/orders'
+import { createOrder, getOrders, cancelOrder, downloadInvoice } from '@/services/orders'
 
 export const useOrdersStore = defineStore('orders', {
   state: () => ({
@@ -58,6 +58,21 @@ export const useOrdersStore = defineStore('orders', {
         return data
       } catch (err) {
         this.error = err.response?.data?.message || err.message || 'Eroare la anularea comenzii'
+        throw err
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async downloadUserInvoice(id) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const blob = await downloadInvoice(id)
+        return blob
+      } catch (err) {
+        this.error = err.response?.data?.message || err.message || 'Eroare la descarcarea facturii'
         throw err
       } finally {
         this.loading = false

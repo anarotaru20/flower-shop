@@ -33,6 +33,17 @@ export async function getOrders() {
   return data
 }
 
+export async function downloadInvoice(id) {
+  const headers = await getAuthHeaders()
+
+  const response = await api.get(`/orders/${id}/invoice`, {
+    headers,
+    responseType: 'blob',
+  })
+
+  return response.data
+}
+
 export async function cancelOrder(id) {
   const headers = await getAuthHeaders()
   const { data } = await api.put(`/orders/${id}/cancel`, {}, { headers })

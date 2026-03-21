@@ -6,6 +6,8 @@ const authJwt = require("../middleware/auth");
 
 router.post("/", authJwt, ordersController.createOrder);
 router.get("/", authJwt, ordersController.getOrders);
+router.get("/:id/invoice", authJwt, ordersController.downloadInvoice);
 router.put("/:id/cancel", authJwt, ordersController.cancelOrder);
+
 
 module.exports = router;

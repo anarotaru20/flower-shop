@@ -186,8 +186,54 @@ async function cancelOrder(orderId, userId) {
   return data;
 }
 
+async function getOrderByIdForInvoice(orderId, userId) {
+  const { data, error } = await supabase
+    .from("orders")
+    .select(`
+      id,
+      user_id,
+      customer_name,
+      phone,
+      shipping_address,
+      payment_method,
+      status,
+      payment_status,
+      subtotal,
+      tax_amount,
+      total,
+      invoice_number,
+      stripe_payment_intent_id,
+      paid_at,
+      created_at,
+      order_items (
+        id,
+        order_id,
+        product_id,
+        product_name,
+        quantity,
+        price,
+        created_at,
+        products (
+          id,
+          name,
+          slug,
+          price,
+          image_url
+        )
+      )
+    `)
+    .eq("id", orderId)
+    .eq("user_id", userId)
+    .single()
+
+  if (error) throw error
+
+  return data
+}
+
 module.exports = {
   createOrder,
   getOrdersByUserId,
   cancelOrder,
+  getOrderByIdForInvoice,
 };
