@@ -49,6 +49,10 @@ app.use("/orders", orders);
 const payments = require("./routes/payments");
 app.use("/payments", payments);
 
+// Notifications
+const { runReminderJob } = require("./jobs/reminderJob");
+runReminderJob();
+
 app.use((req, res) => {
   logger.warn(`Route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({ message: "Route not found" });

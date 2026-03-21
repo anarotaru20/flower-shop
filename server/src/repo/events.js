@@ -88,9 +88,38 @@ async function updateEventById(id, userId, payload) {
   return data;
 }
 
+async function getAllEventsWithBeneficiaries() {
+  const { data, error } = await supabase.from("events").select(`
+  id,
+  user_id,
+  beneficiary_id,
+  event_type,
+  event_date,
+  reminder_days_before,
+  notes,
+  created_at,
+  beneficiaries (
+    id,
+    name,
+    preferred_colors,
+    preferred_style,
+    preferred_product_type,
+    budget_min,
+    budget_max
+  ),
+  profiles (
+    email
+  )
+`);
+  if (error) throw error;
+
+  return data;
+}
+
 module.exports = {
   getEventsByUserId,
   createEvent,
   deleteEventById,
   updateEventById,
+  getAllEventsWithBeneficiaries,
 };
