@@ -67,6 +67,9 @@ app.use('/admin/products', adminProductsRoutes)
 const adminOrdersRoutes = require('./routes/adminOrders')
 app.use('/admin/orders', adminOrdersRoutes)
 
+const adminUsersRoutes = require('./routes/adminUsers')
+app.use('/admin/users', adminUsersRoutes)
+
 app.use((req, res) => {
   logger.warn(`Route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({ message: "Route not found" });

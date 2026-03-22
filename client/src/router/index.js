@@ -16,6 +16,7 @@ import AdminDashboardView from '@/views/admin/AdminDashboardView.vue'
 import AdminProductsView from '@/views/admin/AdminProductsView.vue'
 import AdminOrdersView from '@/views/admin/AdminOrdersView.vue'
 import AdminReportsView from '@/views/admin/AdminReportsView.vue'
+import AdminUsersView from '@/views/admin/AdminUsersView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -104,6 +105,11 @@ const router = createRouter({
           path: 'reports',
           name: 'admin-reports',
           component: AdminReportsView,
+        },
+        {
+          path: 'users',
+          name: 'admin-users',
+          component: AdminUsersView,
         },
       ],
     },

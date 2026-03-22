@@ -10,6 +10,7 @@
         <v-list-item title="Rapoarte" prepend-icon="mdi-chart-line" to="/admin/reports" />
         <v-list-item title="Produse" prepend-icon="mdi-flower-outline" to="/admin/products" />
         <v-list-item title="Comenzi" prepend-icon="mdi-receipt-text-outline" to="/admin/orders" />
+        <v-list-item title="Utilizatori" prepend-icon="mdi-account-outline" to="/admin/users" />
       </v-list>
     </v-navigation-drawer>
 
