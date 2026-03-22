@@ -3,22 +3,27 @@ const supabase = require("../config/db");
 async function getAllProducts(categorySlug) {
   let query = supabase
     .from("products")
-    .select(`
-      id,
-      name,
-      slug,
-      description,
-      price,
-      stock,
-      image_url,
-      care_instructions,
-      category_id,
-      categories!inner (
-        id,
-        name,
-        slug
-      )
-    `)
+    .select(
+      `
+  id,
+  name,
+  slug,
+  description,
+  price,
+  stock,
+  image_url,
+  color,
+  style,
+  type,
+  care_instructions,
+  category_id,
+  categories (
+    id,
+    name,
+    slug
+  )
+`,
+    )
     .order("created_at", { ascending: false });
 
   if (categorySlug) {
@@ -34,22 +39,27 @@ async function getAllProducts(categorySlug) {
 async function getProductBySlug(slug) {
   const { data, error } = await supabase
     .from("products")
-    .select(`
-      id,
-      name,
-      slug,
-      description,
-      price,
-      stock,
-      image_url,
-      care_instructions,
-      category_id,
-      categories (
-        id,
-        name,
-        slug
-      )
-    `)
+    .select(
+      `
+  id,
+  name,
+  slug,
+  description,
+  price,
+  stock,
+  image_url,
+  color,
+  style,
+  type,
+  care_instructions,
+  category_id,
+  categories (
+    id,
+    name,
+    slug
+  )
+`,
+    )
     .eq("slug", slug)
     .maybeSingle();
 
