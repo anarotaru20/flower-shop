@@ -57,6 +57,16 @@ runReminderJob();
 const qr = require("./routes/qr");
 app.use("/qr", qr);
 
+// Admin
+const adminDashboardRoutes = require('./routes/adminDashboard')
+app.use('/admin/dashboard', adminDashboardRoutes)
+
+const adminProductsRoutes = require('./routes/adminProducts')
+app.use('/admin/products', adminProductsRoutes)
+
+const adminOrdersRoutes = require('./routes/adminOrders')
+app.use('/admin/orders', adminOrdersRoutes)
+
 app.use((req, res) => {
   logger.warn(`Route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({ message: "Route not found" });
