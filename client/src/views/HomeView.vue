@@ -1,33 +1,78 @@
 <template>
   <div class="home">
-    <section class="hero">
-      <div class="container hero-content">
-        <div class="hero-text">
-          <span class="eyebrow">Bloomera</span>
-          <h1>Flori care spun ceea ce simți</h1>
-          <p class="hero-description">
-            Descoperă buchete, aranjamente și cadouri florale create cu grijă pentru momente
-            speciale, surprize spontane și evenimente de neuitat.
-          </p>
+    <section class="hero-elegant">
+      <div class="container hero-elegant-grid">
+        <div class="hero-elegant-main">
+          <div class="hero-content-wrap">
+            <span class="hero-kicker">Estetica Emoției — Est. 2026</span>
+            <h1>Flori care spun <br /><span class="italic-serif">ceea ce simți</span></h1>
+            <p class="hero-elegant-description">
+              Arta florală redefinește momentele tale. Descoperă colecții exclusiviste, create
+              pentru a transforma simplele gesturi în amintiri prețioase.
+            </p>
 
-          <div class="hero-actions">
-            <RouterLink to="/products" class="btn btn-primary">Vezi produsele</RouterLink>
-            <button class="btn btn-secondary" @click="quizDialog = true">Take the test</button>
-            <RouterLink to="/register" class="btn btn-secondary">Creeaza cont</RouterLink>
-            <RouterLink to="/login" class="btn btn-ghost">Login</RouterLink>
+            <div class="hero-elegant-actions">
+              <RouterLink to="/products" class="btn btn-premium-solid"
+                >Explorează Colecția</RouterLink
+              >
+              <button class="btn btn-premium-outline" @click="quizDialog = true">
+                Găsește Buchetul Ideal
+              </button>
+            </div>
+          </div>
+
+          <div class="hero-footer-promos">
+            <div class="mini-promo">
+              <span class="label">Privilegiu</span>
+              <p>Reduceri exclusive sezoniere</p>
+            </div>
+            <div class="mini-promo">
+              <span class="label">Welcome</span>
+              <p>25 lei cadou la prima comandă</p>
+            </div>
           </div>
         </div>
 
-        <div class="hero-card">
-          <div class="hero-badge">Colecția sezonului</div>
-          <h3>Delicat, proaspăt, memorabil</h3>
-          <p>
-            Buchete în nuanțe pastelate, inspirate din natură și create pentru a aduce puțină
-            frumusețe în fiecare zi.
-          </p>
+        <div class="hero-elegant-side">
+          <div class="hero-editorial-card">
+            <div class="card-inner">
+              <span class="editorial-label">Curatoriat</span>
+              <h3>Ediție <br />Limitată</h3>
+              <p>Inspirate de grădinile aristocrate europene.</p>
+            </div>
+          </div>
 
-          <div class="hero-card-actions">
-            <RouterLink to="/forgot-password" class="text-link">Ai uitat parola?</RouterLink>
+          <button class="hero-quiz-card" @click="quizDialog = true">
+            <span class="editorial-label">Personal Shopper</span>
+            <h3>Consiliere Florală</h3>
+            <p>Răspunde la câteva întrebări pentru o recomandare adaptată stilului tău.</p>
+            <span class="hero-quiz-link">Începe experiența —</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="container">
+        <div class="hero-info-strip">
+          <div class="hero-info-item">
+            <span class="info-num">01</span>
+            <div class="info-text">
+              <strong>Design de Autor</strong>
+              <span>Piese unice de artă florală</span>
+            </div>
+          </div>
+          <div class="hero-info-item">
+            <span class="info-num">02</span>
+            <div class="info-text">
+              <strong>Livrare Premium</strong>
+              <span>Ambalaj de lux și transport dedicat</span>
+            </div>
+          </div>
+          <div class="hero-info-item">
+            <span class="info-num">03</span>
+            <div class="info-text">
+              <strong>Prospețime</strong>
+              <span>Selectate manual în fiecare dimineață</span>
+            </div>
           </div>
         </div>
       </div>
@@ -36,122 +81,152 @@
     <section v-if="quizResults.length" class="quiz-results-section">
       <div class="container">
         <div class="section-head">
-          <span class="section-label">Bloomera Quiz</span>
-          <h2>Your Bloomera matches</h2>
-          <p class="hero-description">
-            Am ales 5 recomandări pe baza răspunsurilor tale. Poți intra direct pe produsul dorit.
-          </p>
+          <span class="section-label">Selecția Ta</span>
+          <h2>Recomandări personalizate</h2>
         </div>
-
         <div class="quiz-results-grid">
-          <article
-            v-for="product in quizResults"
-            :key="product.id"
-            class="quiz-result-card"
-          >
-            <img
-              :src="product.image_url"
-              :alt="product.name"
-              class="quiz-result-image"
-            />
-
+          <article v-for="product in quizResults" :key="product.id" class="quiz-result-card">
+            <img :src="product.image_url" :alt="product.name" class="quiz-result-image" />
             <div class="quiz-result-content">
               <h3>{{ product.name }}</h3>
-              <p class="quiz-result-price">{{ product.price }} RON</p>
-              <p class="quiz-result-description">
-                {{ product.description || 'Descoperă un produs ales special pentru preferințele tale.' }}
-              </p>
-
-              <RouterLink :to="`/products/${product.slug}`" class="btn btn-primary">
-                Vezi produsul
-              </RouterLink>
+              <p class="quiz-result-price">{{ formatPrice(product.price) }}</p>
+              <RouterLink :to="`/products/${product.slug}`" class="btn-text-link"
+                >Detalii Produs —</RouterLink
+              >
             </div>
           </article>
         </div>
       </div>
     </section>
 
-    <section class="highlights">
+    <section class="products-showcase">
       <div class="container">
-        <div class="section-head">
-          <span class="section-label">Ce găsești la noi</span>
-          <h2>Ales cu drag, pentru orice ocazie</h2>
+        <div class="section-head section-head-row">
+          <div>
+            <span class="section-label">Signature Collection</span>
+            <h2>Cele mai iubite creații</h2>
+          </div>
+          <div class="showcase-actions">
+            <RouterLink to="/products" class="section-link">Vezi tot catalogul —</RouterLink>
+          </div>
         </div>
 
-        <div class="highlight-grid">
-          <RouterLink to="/products" class="highlight-card highlight-link">
-            <h3>Buchete elegante</h3>
-            <p>Flori atent alese pentru aniversări, surprize și gesturi care contează.</p>
-          </RouterLink>
-
-          <button class="highlight-card highlight-link highlight-button" @click="quizDialog = true">
-            <h3>Take the test</h3>
-            <p>Răspunde la câteva întrebări și primești 5 recomandări potrivite pentru tine.</p>
+        <div class="products-carousel-wrap">
+          <button class="carousel-floating left" type="button" @click="scrollCarousel('left')">
+            ‹
           </button>
 
-          <RouterLink to="/register" class="highlight-card highlight-link">
-            <h3>Cont Bloomera</h3>
-            <p>Creează-ți cont pentru o experiență mai rapidă și mai personală.</p>
-          </RouterLink>
+          <div ref="carouselTrack" class="products-carousel">
+            <article v-for="product in featuredProducts" :key="product.id" class="product-card">
+              <RouterLink :to="`/products/${product.slug}`" class="product-image-wrap">
+                <img :src="product.image_url" :alt="product.name" class="product-image" />
+              </RouterLink>
 
-          <RouterLink to="/login" class="highlight-card highlight-link">
-            <h3>Intră în cont</h3>
-            <p>Conectează-te ca să îți vezi comenzile și datele salvate.</p>
-          </RouterLink>
+              <div class="product-card-content">
+                <p class="product-category">{{ product.categories?.name || 'Bloomera' }}</p>
+                <RouterLink :to="`/products/${product.slug}`" class="product-title">
+                  {{ product.name }}
+                </RouterLink>
+                <p class="product-price">{{ formatPrice(product.price) }}</p>
+              </div>
+            </article>
+          </div>
+
+          <button class="carousel-floating right" type="button" @click="scrollCarousel('right')">
+            ›
+          </button>
         </div>
       </div>
     </section>
 
     <section class="benefits">
       <div class="container">
-        <div class="section-head">
-          <span class="section-label">De ce Bloomera</span>
-          <h2>Un shop floral gândit să te facă să revii</h2>
-        </div>
-
         <div class="benefit-grid">
           <div class="benefit-item">
-            <div class="icon">🌷</div>
-            <h3>Design floral modern</h3>
-            <p>Stil delicat, romantic și actual, fără să fie încărcat.</p>
+            <div class="icon-wrap">🌷</div>
+            <h3>Design Modern</h3>
+            <p>Stil delicat, romantic și actual, creat să impresioneze fără a fi ostentativ.</p>
           </div>
-
           <div class="benefit-item">
-            <div class="icon">💌</div>
-            <h3>Perfect pentru cadouri</h3>
-            <p>Comanzi ușor ceva frumos pentru cineva drag, fără bătăi de cap.</p>
+            <div class="icon-wrap">💌</div>
+            <h3>Cadoul Perfect</h3>
+            <p>Experiență de achiziție simplificată pentru cadouri care transmit emoție pură.</p>
           </div>
-
           <div class="benefit-item">
-            <div class="icon">✨</div>
-            <h3>Experiență caldă</h3>
-            <p>Un site prietenos, feminin și elegant, construit pentru emoție și inspirație.</p>
+            <div class="icon-wrap">✨</div>
+            <h3>Atmosferă Premium</h3>
+            <p>Un univers digital construit pentru inspirație, eleganță și rafinament feminin.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <HomeQuizDialog
-      v-model="quizDialog"
-      @complete="handleQuizComplete"
-    />
+    <footer class="home-footer">
+      <div class="container footer-grid">
+        <div class="footer-brand">
+          <h3 class="footer-logo">
+            <span class="brand-pink">bloom</span><span class="brand-green">era</span>
+          </h3>
+          <p class="description">
+            Flori, buchete și aranjamente create cu grijă pentru momente speciale, surprize delicate
+            și gesturi care rămân în suflet.
+          </p>
+        </div>
+
+        <div class="footer-column">
+          <h4>Informații utile</h4>
+          <RouterLink to="/products">Produse</RouterLink>
+          <RouterLink to="/register">Creează cont</RouterLink>
+          <RouterLink to="/login">Login</RouterLink>
+        </div>
+
+        <div class="footer-column">
+          <h4>Contact & program</h4>
+          <span>📞 0712 345 678</span>
+          <span>✉️ contact@bloomera.ro</span>
+          <span>📍 București, România</span>
+          <div class="footer-program">
+            <strong>Program Suport:</strong>
+            <span>Luni - Vineri: 09:00 - 18:00</span>
+          </div>
+        </div>
+
+        <div class="footer-column">
+          <h4>Legal</h4>
+          <a href="https://anpc.ro/" target="_blank">A.N.P.C.</a>
+          <a href="https://www.anaf.ro/..." target="_blank">A.N.A.F.</a>
+        </div>
+      </div>
+    </footer>
+
+    <HomeQuizDialog v-model="quizDialog" @complete="handleQuizComplete" />
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import HomeQuizDialog from '@/components/home/HomeQuizDialog.vue'
 import { useProductsStore } from '@/stores/products'
 
 const productsStore = useProductsStore()
-
 const quizDialog = ref(false)
 const quizResults = ref([])
+const carouselTrack = ref(null)
 
-function normalizeText(value) {
-  return String(value || '').trim().toLowerCase()
+const featuredProducts = computed(() => {
+  return [...(productsStore.products || [])]
+    .filter((product) => Number(product.stock || 0) > 0)
+    .slice(0, 10)
+})
+
+function formatPrice(value) {
+  return `${Number(value || 0).toFixed(2)} Lei`
 }
-
+function normalizeText(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+}
 function includesAny(text, values) {
   const normalizedText = normalizeText(text)
   return values.some((value) => normalizedText.includes(normalizeText(value)))
@@ -159,374 +234,356 @@ function includesAny(text, values) {
 
 function scoreQuizProduct(product, result) {
   let score = 0
-
-  const name = normalizeText(product.name)
-  const description = normalizeText(product.description)
-  const categoryName = normalizeText(product.categories?.name)
-  const searchableText = `${name} ${description} ${categoryName}`
-
-  if (Number(product.stock || 0) > 0) {
-    score += 20
-  } else {
-    score -= 1000
-  }
-
+  const searchableText = `${normalizeText(product.name)} ${normalizeText(product.description)}`
+  if (Number(product.stock || 0) > 0) score += 20
+  else score -= 1000
   const price = Number(product.price || 0)
-
-  if (price >= Number(result.budget_min) && price <= Number(result.budget_max)) {
-    score += 30
-  } else if (price < Number(result.budget_min)) {
-    score += 5
-  } else {
-    score -= 15
-  }
-
-  if (result.preferred_product_type) {
-    if (includesAny(searchableText, [result.preferred_product_type])) {
-      score += 25
-    }
-  }
-
-  if (result.preferred_style) {
-    if (includesAny(searchableText, [result.preferred_style])) {
-      score += 15
-    }
-
-    if (result.preferred_style === 'romantic' && includesAny(searchableText, ['rose', 'trandafir', 'pink', 'roz'])) {
-      score += 10
-    }
-
-    if (result.preferred_style === 'natural' && includesAny(searchableText, ['green', 'verde', 'plant', 'planta'])) {
-      score += 10
-    }
-
-    if (result.preferred_style === 'elegant' && includesAny(searchableText, ['white', 'alb', 'lily', 'crin', 'orchid', 'orhidee'])) {
-      score += 10
-    }
-
-    if (result.preferred_style === 'playful' && includesAny(searchableText, ['colorful', 'multicolor', 'bright', 'vibrant'])) {
-      score += 10
-    }
-
-    if (result.preferred_style === 'luxury' && includesAny(searchableText, ['premium', 'deluxe', 'luxury', 'elegant'])) {
-      score += 10
-    }
-  }
-
-  if (Array.isArray(result.preferred_colors) && result.preferred_colors.length) {
-    const matchedColors = result.preferred_colors.filter((color) =>
-      searchableText.includes(normalizeText(color))
-    ).length
-
-    score += matchedColors * 10
-  }
-
-  if (result.event_type) {
-    if (result.event_type === 'birthday' && includesAny(searchableText, ['birthday', 'joy', 'happy', 'playful', 'vibrant'])) {
-      score += 8
-    }
-
-    if (result.event_type === 'anniversary' && includesAny(searchableText, ['romantic', 'rose', 'elegant', 'luxury'])) {
-      score += 8
-    }
-
-    if (result.event_type === 'just because' && includesAny(searchableText, ['natural', 'soft', 'fresh'])) {
-      score += 8
-    }
-
-    if (result.event_type === 'special event' && includesAny(searchableText, ['premium', 'box', 'luxury', 'elegant'])) {
-      score += 8
-    }
-
-    if (result.event_type === 'sympathy' && includesAny(searchableText, ['white', 'alb', 'neutral', 'minimal'])) {
-      score += 8
-    }
-  }
-
+  if (price >= Number(result.budget_min) && price <= Number(result.budget_max)) score += 30
   return score
 }
 
 function handleQuizComplete(result) {
   const products = productsStore.products || []
-
   quizResults.value = products
-    .map((product) => ({
-      ...product,
-      score: scoreQuizProduct(product, result),
-    }))
+    .map((product) => ({ ...product, score: scoreQuizProduct(product, result) }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 5)
 }
 
+function scrollCarousel(direction) {
+  if (!carouselTrack.value) return
+
+  // Folosim scrollLeft direct pentru precizie
+  const container = carouselTrack.value
+  const scrollAmount = container.clientWidth * 0.85 // Puțin mai mult pentru o mișcare amplă
+
+  container.scrollBy({
+    left: direction === 'right' ? scrollAmount : -scrollAmount,
+    behavior: 'smooth',
+  })
+}
+
 onMounted(async () => {
-  if (!productsStore.products?.length) {
-    await productsStore.fetchProducts()
-  }
+  if (!productsStore.products?.length) await productsStore.fetchProducts()
 })
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap');
+
+/* CONFIGURAȚIE GENERALĂ */
 .home {
-  background: linear-gradient(180deg, #fffaf6 0%, #fffdfb 100%);
-  color: #5f5a55;
-  background: linear-gradient(180deg, #fffaf7 0%, #fff1f4 40%, #f7f3ee 100%);
+  font-family: 'Inter', sans-serif;
+  color: #1a1a1a;
+  background: #fff;
+}
+
+h1, h2, h3, .product-title, .footer-logo {
+  font-family: 'Playfair Display', serif;
+  font-weight: 400;
 }
 
 .container {
-  width: min(1180px, calc(100% - 32px));
+  width: min(1400px, calc(100% - 60px));
   margin: 0 auto;
 }
 
-.hero {
-  padding: 72px 0 56px;
-}
-
-.hero-content {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 32px;
-  align-items: center;
-}
-
-.eyebrow {
-  display: inline-block;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: #f7dfe5;
-  color: #8f5f6b;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin-bottom: 18px;
-}
-
-.hero-text h1 {
-  margin: 0 0 18px;
-  font-size: clamp(38px, 5vw, 64px);
-  line-height: 1.05;
-  color: #5a514d;
-  max-width: 620px;
-}
-
-.hero-description {
-  margin: 0;
-  font-size: 18px;
-  line-height: 1.8;
-  max-width: 620px;
-  color: #786f69;
-}
-
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 32px;
-}
-
+/* BUTOANE PREMIUM */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 50px;
-  padding: 0 22px;
-  border-radius: 999px;
-  text-decoration: none;
-  font-weight: 700;
-  transition: 0.2s ease;
+  min-height: 56px;
+  padding: 0 40px;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 600;
+  transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  border-radius: 0;
+  cursor: pointer;
 }
 
-.btn-primary {
-  background: #dba4b2;
-  color: #ffffff;
-  box-shadow: 0 10px 24px rgba(219, 164, 178, 0.28);
+.btn-premium-solid {
+  background: #1a1715;
+  color: white;
+  border: 1px solid #1a1715;
 }
 
-.btn-primary:hover {
-  transform: translateY(-1px);
-  background: #d493a4;
+.btn-premium-solid:hover {
+  background: #c72c48; /* Noul roz la hover */
+  border-color: #c72c48;
+  transform: translateY(-2px);
 }
 
-.btn-secondary {
-  background: #edf4ea;
-  color: #6b7f68;
-  border: 1px solid #d8e7d2;
+.btn-premium-outline {
+  background: transparent;
+  color: #1a1715;
+  border: 1px solid #1a1715;
 }
 
-.btn-secondary:hover {
-  transform: translateY(-1px);
-  background: #e6f0e2;
+.btn-premium-outline:hover {
+  color: #c72c48;
+  border-color: #c72c48;
 }
 
-.hero-card {
-  /* background: linear-gradient(180deg, #fdecef 0%, #f7efe8 100%); */
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(10px);
-  border: 1px solid #f1d8dd;
-  border-radius: 28px;
-  padding: 32px;
-  box-shadow: 0 18px 40px rgba(175, 145, 137, 0.12);
+/* HERO SECTION */
+.hero-elegant { padding: 30px 0 60px; }
+.hero-elegant-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 0.6fr;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
-.hero-badge {
-  display: inline-block;
-  margin-bottom: 16px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.75);
-  color: #a06b79;
-  font-size: 13px;
-  font-weight: 700;
+.hero-elegant-main {
+  background: #f4ebe8;
+  padding: 120px 80px 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 650px;
+  border: 1px solid #eee;
 }
 
-.hero-card h3 {
-  margin: 0 0 12px;
-  font-size: 28px;
-  color: #645954;
+.hero-kicker {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  color: #c72c48; /* Contrast ridicat */
+  margin-bottom: 25px;
+  display: block;
 }
 
-.hero-card p {
-  margin: 0;
-  line-height: 1.8;
-  color: #7b726c;
+.hero-elegant-main h1 {
+  font-size: clamp(54px, 7vw, 92px);
+  line-height: 0.95;
+  margin: 0 0 30px;
 }
 
-.highlights,
-.benefits {
-  padding: 32px 0 72px;
+.italic-serif {
+  font-style: italic;
+  color: #c72c48; /* Accent roz */
 }
 
-.section-head {
-  margin-bottom: 24px;
+.hero-elegant-description {
+  font-size: 19px;
+  line-height: 1.7;
+  color: #444;
+  max-width: 480px;
+  font-weight: 300;
 }
 
-.section-label {
-  display: inline-block;
-  margin-bottom: 10px;
-  color: #b07c89;
-  font-size: 14px;
-  font-weight: 700;
+.hero-elegant-actions { display: flex; gap: 20px; margin-top: 40px; }
+
+.hero-footer-promos {
+  display: flex;
+  gap: 40px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  padding-top: 40px;
 }
 
-.section-head h2 {
-  margin: 0;
-  font-size: clamp(28px, 4vw, 40px);
-  color: #5a514d;
+.mini-promo .label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #c72c48;
+  letter-spacing: 1px;
+}
+.mini-promo p { font-size: 14px; margin: 5px 0 0; font-weight: 500; }
+
+/* SIDE CARDS */
+.hero-elegant-side { display: grid; gap: 20px; }
+.hero-editorial-card {
+  background: #1a1715;
+  color: white;
+  padding: 50px;
+  display: flex;
+  align-items: center;
+}
+.hero-editorial-card h3 { font-size: 36px; line-height: 1.1; margin: 20px 0; }
+.hero-editorial-card p { opacity: 0.7; font-weight: 300; }
+
+.hero-quiz-card {
+  background: #fff;
+  border: 1px solid #eee;
+  padding: 50px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.3s;
+}
+.hero-quiz-card:hover { border-color: #c72c48; }
+
+.hero-quiz-link {
+  display: block;
+  margin-top: 30px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #c72c48;
 }
 
-.highlight-grid {
+/* INFO STRIP */
+.hero-info-strip {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 22px;
+  padding: 50px 0;
+  border-bottom: 1px solid #eee;
+}
+.hero-info-item { display: flex; align-items: center; padding: 0 40px; }
+.hero-info-item:not(:last-child) { border-right: 1px solid #eee; }
+.info-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 42px;
+  color: #e5d6d9;
+  margin-right: 30px;
 }
 
-.highlight-card {
-  background: #fff7f3;
-  border: 1px solid #f2e3dc;
-  border-radius: 24px;
-  padding: 28px;
+/* CARUSEL PRODUSE - PERFORMANȚĂ MAXIMĂ */
+.products-showcase { padding: 100px 0; background: #fff; position: relative; }
+.section-head-row { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 50px; }
+.section-label {
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: #c72c48;
+  text-transform: uppercase;
+  margin-bottom: 15px;
+  display: block;
 }
+.section-head h2 { font-size: 48px; margin: 0; }
+.section-link {
+  text-decoration: none;
+  color: #1a1715;
+  font-weight: 600;
+  border-bottom: 1px solid #1a1715;
+  padding-bottom: 5px;
+  transition: color 0.3s, border-color 0.3s;
+}
+.section-link:hover { color: #c72c48; border-color: #c72c48; }
 
-.highlight-card h3 {
-  margin: 0 0 12px;
-  color: #665b56;
+.products-carousel-wrap { position: relative; }
+
+.products-carousel {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 75px) / 4);
+  gap: 25px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 20px;
+  scrollbar-width: none;
+  will-change: scroll-position; /* Optimizare scroll */
+  -webkit-overflow-scrolling: touch;
+}
+.products-carousel::-webkit-scrollbar { display: none; }
+
+.product-card {
+  scroll-snap-align: start;
+  transition: transform 0.4s;
+  will-change: transform;
+  transform: translateZ(0); /* Forțează GPU */
+}
+.product-image-wrap {
+  display: block;
+  aspect-ratio: 1 / 1.35;
+  background: #f9f9f9;
+  overflow: hidden;
+  position: relative;
+}
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.product-card:hover .product-image { transform: scale(1.08); }
+
+.product-card-content { padding: 25px 0; }
+.product-category { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #999; margin-bottom: 10px; }
+.product-title {
   font-size: 22px;
+  text-decoration: none;
+  color: #1a1715;
+  margin-bottom: 10px;
+  display: block;
+  transition: color 0.3s;
 }
+.product-title:hover { color: #c72c48; }
+.product-price { font-size: 17px; font-weight: 300; color: #1a1715; }
 
-.highlight-card p {
-  margin: 0;
-  color: #7c726d;
-  line-height: 1.7;
+/* BUTOANE CARUSEL */
+.carousel-floating {
+  position: absolute;
+  top: 40%;
+  transform: translateY(-50%);
+  width: 56px;
+  height: 56px;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
 }
+.carousel-floating:hover { background: #c72c48; color: white; border-color: #c72c48; }
+.carousel-floating.left { left: -28px; }
+.carousel-floating.right { right: -28px; }
 
+/* BENEFITS */
 .benefit-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 22px;
+  gap: 60px;
+  padding: 100px 0;
+  border-top: 1px solid #eee;
 }
+.benefit-item { text-align: center; }
+.icon-wrap { font-size: 32px; margin-bottom: 25px; }
+.benefit-item h3 { font-size: 24px; margin-bottom: 15px; }
+.benefit-item p { color: #666; line-height: 1.7; font-weight: 300; }
 
-.benefit-item {
-  background: #f4f8f1;
-  border: 1px solid #dbe8d5;
-  border-radius: 24px;
-  padding: 28px;
+/* FOOTER */
+.home-footer {
+  background: #0f0e0d;
+  color: #fff;
+  padding: 100px 0 60px;
+  margin-top: 40px;
 }
-
-.icon {
-  font-size: 28px;
-  margin-bottom: 14px;
+.footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 80px; }
+.footer-logo { font-size: 38px; margin-bottom: 30px; letter-spacing: -1px; }
+.brand-pink { color: #c72c48; } /* Noul roz vibrant */
+.brand-green { color: #a4b494; }
+.footer-brand p { color: #888; font-size: 15px; line-height: 1.8; }
+.footer-column h4 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #c72c48;
+  margin-bottom: 35px;
 }
-
-.benefit-item h3 {
-  margin: 0 0 10px;
-  color: #5f685c;
-  font-size: 22px;
-}
-
-.benefit-item p {
-  margin: 0;
-  color: #74806f;
-  line-height: 1.7;
-}
-
-@media (max-width: 900px) {
-  .hero-content,
-  .highlight-grid,
-  .benefit-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .hero {
-    padding-top: 48px;
-  }
-
-  .hero-text h1 {
-    max-width: 100%;
-  }
-
-  .hero-description {
-    max-width: 100%;
-  }
-}
-
-.btn-ghost {
-  background: transparent;
-  color: #8f5f6b;
-  border: 1px solid #e8cfd6;
-}
-
-.btn-ghost:hover {
-  transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.45);
-}
-
-.hero-card-actions {
-  margin-top: 18px;
-}
-
-.text-link {
-  color: #8f5f6b;
-  text-decoration: none;
-  font-weight: 700;
-}
-
-.highlight-link {
+.footer-column a, .footer-column span {
   display: block;
+  color: #aaa;
   text-decoration: none;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  margin-bottom: 15px;
+  font-size: 14px;
+  transition: color 0.3s;
 }
+.footer-column a:hover { color: #fff; }
 
-.highlight-link:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 28px rgba(175, 145, 137, 0.12);
+/* RESPONSIVE */
+@media (max-width: 1200px) {
+  .products-carousel { grid-auto-columns: calc((100% - 50px) / 3); }
 }
-.quiz-result-image {
-  width: 110px;
-  height: 110px;
-  object-fit: cover;
-  border-radius: 14px;
-  margin: 0 auto;
+@media (max-width: 900px) {
+  .hero-elegant-grid, .footer-grid, .hero-info-strip, .benefit-grid { grid-template-columns: 1fr; gap: 40px; }
+  .products-carousel { grid-auto-columns: 85%; }
+  .carousel-floating { display: none; }
+  .hero-elegant-main { padding: 60px 30px; min-height: auto; }
 }
 </style>

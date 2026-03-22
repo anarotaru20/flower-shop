@@ -309,8 +309,8 @@ function handleLogout() {
 .brand {
   display: flex;
   text-decoration: none;
-  font-size: 36px;
-  font-weight: 800;
+  font-size: 35px;
+  font-weight: 900;
   letter-spacing: 0.02em;
   line-height: 1;
 }
@@ -585,6 +585,7 @@ function handleLogout() {
   font-weight: 600;
   white-space: nowrap;
   transition: 0.2s ease;
+  color: #5a4f49;
 }
 
 .category-link:hover {
