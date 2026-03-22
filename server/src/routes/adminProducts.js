@@ -1,17 +1,14 @@
 const express = require('express')
 const router = express.Router()
-const adminDashboardController = require('../controllers/adminDashboard')
+const adminProductsController = require('../controllers/adminProducts')
 const auth = require('../middleware/auth')
 const isAdmin = require('../middleware/isAdmin')
 
 router.use(auth, isAdmin)
 
-router.get('/overview', adminDashboardController.getOverview)
-router.get('/total-products', adminDashboardController.getTotalProducts)
-router.get('/total-orders', adminDashboardController.getTotalOrders)
-router.get('/total-revenue', adminDashboardController.getTotalRevenue)
-router.get('/recent-orders', adminDashboardController.getRecentOrders)
-router.get('/orders-by-month', adminDashboardController.getOrdersByMonth)
-router.get('/revenue-by-month', adminDashboardController.getRevenueByMonth)
+router.get('/', adminProductsController.getAllProducts)
+router.post('/', adminProductsController.createProduct)
+router.put('/:id', adminProductsController.updateProduct)
+router.delete('/:id', adminProductsController.deleteProduct)
 
 module.exports = router

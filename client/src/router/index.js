@@ -11,6 +11,11 @@ import CheckoutView from '@/views/CheckoutView.vue'
 import OrdersView from '@/views/OrdersView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import QrView from '@/views/QrView.vue'
+import AdminLayout from '@/components/layout/AdminLayout.vue'
+import AdminDashboardView from '@/views/admin/AdminDashboardView.vue'
+import AdminProductsView from '@/views/admin/AdminProductsView.vue'
+import AdminOrdersView from '@/views/admin/AdminOrdersView.vue'
+import AdminReportsView from '@/views/admin/AdminReportsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -69,13 +74,39 @@ const router = createRouter({
       path: '/profile',
       name: 'profile',
       component: ProfileView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
-  path: '/qr/:token',
-  name: 'qr',
-  component: QrView,
-},
+      path: '/qr/:token',
+      name: 'qr',
+      component: QrView,
+    },
+    {
+      path: '/admin',
+      component: AdminLayout,
+      children: [
+        {
+          path: '',
+          name: 'admin-dashboard',
+          component: AdminDashboardView,
+        },
+        {
+          path: 'products',
+          name: 'admin-products',
+          component: AdminProductsView,
+        },
+        {
+          path: 'orders',
+          name: 'admin-orders',
+          component: AdminOrdersView,
+        },
+        {
+          path: 'reports',
+          name: 'admin-reports',
+          component: AdminReportsView,
+        },
+      ],
+    },
   ],
 })
 

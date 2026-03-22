@@ -8,6 +8,7 @@ async function getAllOrders() {
       customer_name,
       phone,
       shipping_address,
+      payment_method,
       status,
       total,
       created_at
@@ -24,6 +25,7 @@ async function getOrderById(id) {
     .from('orders')
     .select(`
       id,
+      user_id,
       customer_name,
       phone,
       shipping_address,
@@ -32,11 +34,17 @@ async function getOrderById(id) {
       total,
       created_at,
       order_items (
+        id,
+        order_id,
+        product_id,
+        product_name,
         quantity,
         price,
+        created_at,
         products (
           id,
           name,
+          slug,
           price,
           image_url
         )
