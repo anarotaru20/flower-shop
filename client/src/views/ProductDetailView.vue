@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useProductsStore } from '@/stores/products'
 import { useCartStore } from '@/stores/cart'
@@ -90,6 +90,15 @@ const promoProduct = computed(() => {
 onMounted(() => {
   productsStore.fetchProductBySlug(route.params.slug)
 })
+
+watch(
+  () => route.params.slug,
+  (newSlug) => {
+    if (newSlug) {
+      productsStore.fetchProductBySlug(newSlug)
+    }
+  }
+)
 </script>
 
 <style scoped>
