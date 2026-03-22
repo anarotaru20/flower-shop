@@ -57,13 +57,6 @@
       </div>
 
       <nav class="nav-links">
-        <RouterLink to="/products" class="nav-item">
-          <div class="nav-icon-wrap">
-            <v-icon size="20">mdi-store-outline</v-icon>
-          </div>
-          <span class="nav-label">Shop</span>
-        </RouterLink>
-
         <RouterLink to="/cart" class="nav-item">
           <div class="nav-icon-wrap cart-icon">
             <v-icon size="20">mdi-cart-outline</v-icon>
