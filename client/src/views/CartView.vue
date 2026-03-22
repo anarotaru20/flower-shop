@@ -15,7 +15,11 @@
 
       <div v-else class="cart-layout">
         <div class="cart-items">
-          <article v-for="item in cartStore.items" :key="item.id" class="cart-item">
+          <div v-if="hasBirthdayPromo" class="promo-banner">
+            🎂 Birthday Week: ai 10% reducere la toate produsele
+          </div>
+
+          <article v-for="item in promoCartItems" :key="item.id" class="cart-item">
             <div class="item-image">🌸</div>
 
             <div class="item-info">
@@ -23,7 +27,16 @@
                 {{ item.name }}
               </RouterLink>
 
-              <p class="item-price">{{ item.price }} RON / buc</p>
+              <div v-if="item.hasPromo" class="promo-badge">
+                {{ item.promoLabel }}
+              </div>
+
+              <p class="item-price">
+                <span v-if="item.hasPromo" class="old-price">
+                  {{ Number(item.price).toFixed(2) }} RON
+                </span>
+                {{ Number(item.finalPrice).toFixed(2) }} RON / buc
+              </p>
 
               <p class="item-stock">Stoc disponibil: {{ item.stock }}</p>
             </div>
@@ -43,7 +56,12 @@
                 </button>
               </div>
 
-              <p class="item-total">{{ (Number(item.price) * item.quantity).toFixed(2) }} RON</p>
+              <p class="item-total">
+                <span v-if="item.hasPromo" class="old-total">
+                  {{ (Number(item.price) * item.quantity).toFixed(2) }} RON
+                </span>
+                {{ (Number(item.finalPrice) * item.quantity).toFixed(2) }} RON
+              </p>
 
               <button class="remove-btn" @click="cartStore.removeFromCart(item.id)">Elimina</button>
             </div>
@@ -58,9 +76,19 @@
             <span>{{ cartStore.cartCount }}</span>
           </div>
 
+          <div v-if="hasBirthdayPromo" class="summary-row">
+            <span>Subtotal initial</span>
+            <span>{{ originalCartTotal.toFixed(2) }} RON</span>
+          </div>
+
+          <div v-if="hasBirthdayPromo" class="summary-row discount-row">
+            <span>Reducere aniversara</span>
+            <span>- {{ discountAmount.toFixed(2) }} RON</span>
+          </div>
+
           <div class="summary-row total">
             <span>Total</span>
-            <span>{{ cartStore.cartTotal.toFixed(2) }} RON</span>
+            <span>{{ finalCartTotal.toFixed(2) }} RON</span>
           </div>
 
           <v-btn color="primary" @click="goToCheckout"> Continua spre checkout </v-btn>
@@ -73,11 +101,40 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
+import { useAuthStore } from '@/stores/auth'
+import { isBirthdayWeek, getProductPromoData } from '@/utils/promotions'
 
 const router = useRouter()
 const cartStore = useCartStore()
+const authStore = useAuthStore()
+
+const userBirthDate = computed(() => authStore.user?.birth_date || null)
+const hasBirthdayPromo = computed(() => isBirthdayWeek(userBirthDate.value))
+
+const promoCartItems = computed(() => {
+  return (cartStore.items || []).map((item) =>
+    getProductPromoData(item, userBirthDate.value)
+  )
+})
+
+const originalCartTotal = computed(() => {
+  return promoCartItems.value.reduce((sum, item) => {
+    return sum + Number(item.price || 0) * Number(item.quantity || 0)
+  }, 0)
+})
+
+const finalCartTotal = computed(() => {
+  return promoCartItems.value.reduce((sum, item) => {
+    return sum + Number(item.finalPrice || 0) * Number(item.quantity || 0)
+  }, 0)
+})
+
+const discountAmount = computed(() => {
+  return Number((originalCartTotal.value - finalCartTotal.value).toFixed(2))
+})
 
 function goToCheckout() {
   router.push('/checkout')
@@ -159,6 +216,15 @@ function goToCheckout() {
   gap: 18px;
 }
 
+.promo-banner {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #ffe3eb;
+  color: #b85c77;
+  font-weight: 700;
+  border: 1px solid #ffd0dd;
+}
+
 .cart-item {
   display: grid;
   grid-template-columns: 120px 1fr auto;
@@ -187,10 +253,27 @@ function goToCheckout() {
   font-weight: 700;
 }
 
+.promo-badge {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #ffe3eb;
+  color: #b85c77;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .item-price,
 .item-stock {
   margin: 8px 0 0;
   color: #7a716b;
+}
+
+.old-price {
+  text-decoration: line-through;
+  color: #9ca3af;
+  margin-right: 8px;
 }
 
 .item-actions {
@@ -238,6 +321,17 @@ function goToCheckout() {
   font-size: 18px;
   font-weight: 700;
   color: #8f5f6b;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.old-total {
+  text-decoration: line-through;
+  color: #9ca3af;
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .remove-btn {
@@ -268,6 +362,10 @@ function goToCheckout() {
   justify-content: space-between;
   margin-bottom: 14px;
   color: #7a716b;
+}
+
+.discount-row {
+  color: #8f5f6b;
 }
 
 .summary-row.total {

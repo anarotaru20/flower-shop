@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { registerUser, loginUser, forgotPassword, resetPassword } from '@/services/auth'
+import { getProfile } from '@/services/profile'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -18,6 +19,17 @@ export const useAuthStore = defineStore('auth', {
     clearMessages() {
       this.error = null
       this.successMessage = null
+    },
+
+    async fetchProfile() {
+      try {
+        const data = await getProfile()
+        this.user = data ?? null
+        return data
+      } catch (err) {
+        this.user = null
+        throw err
+      }
     },
 
     logout() {
@@ -52,14 +64,15 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const data = await loginUser(payload)
-        const accessToken = data?.session?.access_token ?? null
 
+        const accessToken = data?.session?.access_token ?? null
         this.token = accessToken
-        this.user = data?.user ?? null
 
         if (this.token) {
           localStorage.setItem('token', this.token)
+          await this.fetchProfile()
         } else {
+          this.user = null
           localStorage.removeItem('token')
         }
 

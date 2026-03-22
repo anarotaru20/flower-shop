@@ -6,25 +6,21 @@
         <p>Descoperă colecția noastră de flori și aranjamente</p>
       </div>
 
-      <!-- loading -->
       <div v-if="productsStore.loading" class="state">
         Se incarca produsele...
       </div>
 
-      <!-- error -->
       <div v-else-if="productsStore.error" class="state error">
         {{ productsStore.error }}
       </div>
 
-      <!-- empty -->
       <div v-else-if="!productsStore.products.length" class="state">
         Nu exista produse momentan.
       </div>
 
-      <!-- products -->
       <div v-else class="products-grid">
         <div
-          v-for="product in productsStore.products"
+          v-for="product in displayedProducts"
           :key="product.id"
           class="product-card"
         >
@@ -35,7 +31,19 @@
 
             <div class="card-body">
               <h3>{{ product.name }}</h3>
-              <p class="price">{{ product.price }} RON</p>
+
+              <div v-if="product.hasPromo" class="promo-badge">
+                {{ product.promoLabel }}
+              </div>
+
+              <div class="price-block">
+                <p v-if="product.hasPromo" class="old-price">
+                  {{ product.oldPrice }} RON
+                </p>
+                <p class="price">
+                  {{ product.finalPrice }} RON
+                </p>
+              </div>
             </div>
           </RouterLink>
         </div>
@@ -45,10 +53,21 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useProductsStore } from '@/stores/products'
+import { useAuthStore } from '@/stores/auth'
+import { getProductPromoData } from '@/utils/promotions'
 
 const productsStore = useProductsStore()
+const authStore = useAuthStore()
+
+const userBirthDate = computed(() => authStore.user?.birth_date || null)
+
+const displayedProducts = computed(() => {
+  return (productsStore.products || []).map((product) =>
+    getProductPromoData(product, userBirthDate.value)
+  )
+})
 
 onMounted(() => {
   productsStore.fetchProducts()
@@ -133,6 +152,30 @@ onMounted(() => {
   margin: 0 0 6px;
   font-size: 16px;
   color: #5a514d;
+}
+
+.promo-badge {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #ffe3eb;
+  color: #b85c77;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.price-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.old-price {
+  margin: 0;
+  color: #a79a95;
+  text-decoration: line-through;
+  font-size: 14px;
 }
 
 .price {

@@ -10,12 +10,7 @@
       <form class="auth-form" @submit.prevent="handleSubmit">
         <div class="form-group">
           <label for="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            placeholder="introdu emailul tau"
-            v-model="form.email"
-          />
+          <input id="email" type="email" placeholder="introdu emailul tau" v-model="form.email" />
         </div>
 
         <div class="form-group">
@@ -50,11 +45,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 
 const form = ref({
@@ -63,6 +59,14 @@ const form = ref({
 })
 
 const showPassword = ref(false)
+
+onMounted(() => {
+  auth.clearMessages()
+
+  if (route.query.expired) {
+    auth.error = 'Sesiunea a expirat. Te rugam sa te autentifici din nou.'
+  }
+})
 
 async function handleSubmit() {
   auth.clearMessages()

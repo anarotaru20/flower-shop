@@ -14,28 +14,37 @@
 
         <div class="product-info">
           <p class="category">
-            {{ productsStore.product.category_name || 'Categorie' }}
+            {{ promoProduct.category_name || 'Categorie' }}
           </p>
 
-          <h1>{{ productsStore.product.name }}</h1>
+          <h1>{{ promoProduct.name }}</h1>
 
-          <p class="price">{{ productsStore.product.price }} RON</p>
+          <div v-if="promoProduct.hasPromo" class="promo-badge">
+            {{ promoProduct.promoLabel }}
+          </div>
+
+          <div class="price-block">
+            <p v-if="promoProduct.hasPromo" class="old-price">
+              {{ promoProduct.oldPrice }} RON
+            </p>
+            <p class="price">{{ promoProduct.finalPrice }} RON</p>
+          </div>
 
           <p class="description">
-            {{ productsStore.product.description || 'Fara descriere disponibila.' }}
+            {{ promoProduct.description || 'Fara descriere disponibila.' }}
           </p>
 
           <p class="stock">
             Stoc:
             <span
               :class="{
-                inStock: productsStore.product.stock > 0,
-                outOfStock: productsStore.product.stock <= 0,
+                inStock: promoProduct.stock > 0,
+                outOfStock: promoProduct.stock <= 0,
               }"
             >
               {{
-                productsStore.product.stock > 0
-                  ? `${productsStore.product.stock} disponibile`
+                promoProduct.stock > 0
+                  ? `${promoProduct.stock} disponibile`
                   : 'Indisponibil'
               }}
             </span>
@@ -44,8 +53,8 @@
           <div class="actions">
             <button
               class="add-btn"
-              :disabled="productsStore.product.stock <= 0"
-              @click="cartStore.addToCart(productsStore.product)"
+              :disabled="promoProduct.stock <= 0"
+              @click="cartStore.addToCart(promoProduct)"
             >
               Adauga in cos
             </button>
@@ -59,14 +68,24 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useProductsStore } from '@/stores/products'
 import { useCartStore } from '@/stores/cart'
+import { useAuthStore } from '@/stores/auth'
+import { getProductPromoData } from '@/utils/promotions'
 
 const route = useRoute()
 const productsStore = useProductsStore()
 const cartStore = useCartStore()
+const authStore = useAuthStore()
+
+const userBirthDate = computed(() => authStore.user?.birth_date || null)
+
+const promoProduct = computed(() => {
+  if (!productsStore.product) return null
+  return getProductPromoData(productsStore.product, userBirthDate.value)
+})
 
 onMounted(() => {
   productsStore.fetchProductBySlug(route.params.slug)
@@ -134,8 +153,33 @@ onMounted(() => {
   font-size: 34px;
 }
 
-.price {
+.promo-badge {
+  display: inline-block;
+  margin: 0 0 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #ffe3eb;
+  color: #b85c77;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.price-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   margin: 0 0 18px;
+}
+
+.old-price {
+  margin: 0;
+  color: #a79a95;
+  text-decoration: line-through;
+  font-size: 16px;
+}
+
+.price {
+  margin: 0;
   font-size: 24px;
   font-weight: 700;
   color: #8f5f6b;

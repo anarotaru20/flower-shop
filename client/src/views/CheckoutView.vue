@@ -126,22 +126,45 @@
             <v-card-title class="section-title">Sumar comanda</v-card-title>
 
             <v-card-text>
-              <div v-for="item in cartItems" :key="item.id" class="summary-item">
+              <div v-if="hasBirthdayPromo" class="promo-summary-badge">
+                Birthday Week: reducere 10% aplicata
+              </div>
+
+              <div v-for="item in promoCartItems" :key="item.id" class="summary-item">
                 <div>
                   <div class="item-name">{{ item.name }}</div>
-                  <div class="item-meta">{{ item.quantity }} x {{ formatPrice(item.price) }}</div>
+                  <div class="item-meta">
+                    {{ item.quantity }} x
+                    <span v-if="item.hasPromo" class="old-inline-price">
+                      {{ formatPrice(item.price) }}
+                    </span>
+                    {{ formatPrice(item.finalPrice) }}
+                  </div>
                 </div>
 
                 <div class="item-total">
-                  {{ formatPrice(item.price * item.quantity) }}
+                  <span v-if="item.hasPromo" class="old-inline-price">
+                    {{ formatPrice(item.price * item.quantity) }}
+                  </span>
+                  {{ formatPrice(item.finalPrice * item.quantity) }}
                 </div>
               </div>
 
               <v-divider class="my-4" />
 
+              <div v-if="hasBirthdayPromo" class="summary-row discount-row">
+                <span>Subtotal initial</span>
+                <span>{{ formatPrice(originalCartTotal) }}</span>
+              </div>
+
+              <div v-if="hasBirthdayPromo" class="summary-row discount-row">
+                <span>Reducere aniversara</span>
+                <span>- {{ formatPrice(discountAmount) }}</span>
+              </div>
+
               <div class="summary-total">
                 <span>Total</span>
-                <strong>{{ formatPrice(cartTotal) }}</strong>
+                <strong>{{ formatPrice(finalCartTotal) }}</strong>
               </div>
             </v-card-text>
           </v-card>
@@ -159,13 +182,16 @@ import { useCartStore } from '@/stores/cart'
 import { useOrdersStore } from '@/stores/orders'
 import { useProductsStore } from '@/stores/products'
 import { useQrStore } from '@/stores/qr'
+import { useAuthStore } from '@/stores/auth'
 import StripePaymentForm from '@/components/checkout/StripePaymentForm.vue'
+import { isBirthdayWeek, getProductPromoData } from '@/utils/promotions'
 
 const router = useRouter()
 const cartStore = useCartStore()
 const ordersStore = useOrdersStore()
 const productsStore = useProductsStore()
 const qrStore = useQrStore()
+const authStore = useAuthStore()
 
 const { qr } = storeToRefs(qrStore)
 
@@ -191,7 +217,29 @@ const errors = reactive({
 })
 
 const cartItems = computed(() => cartStore.items)
-const cartTotal = computed(() => cartStore.cartTotal)
+const userBirthDate = computed(() => authStore.user?.birth_date || null)
+const hasBirthdayPromo = computed(() => isBirthdayWeek(userBirthDate.value))
+
+const promoCartItems = computed(() => {
+  return cartItems.value.map((item) => getProductPromoData(item, userBirthDate.value))
+})
+
+const originalCartTotal = computed(() => {
+  return promoCartItems.value.reduce((sum, item) => {
+    return sum + Number(item.price || 0) * Number(item.quantity || 0)
+  }, 0)
+})
+
+const finalCartTotal = computed(() => {
+  return promoCartItems.value.reduce((sum, item) => {
+    return sum + Number(item.finalPrice || 0) * Number(item.quantity || 0)
+  }, 0)
+})
+
+const discountAmount = computed(() => {
+  return Number((originalCartTotal.value - finalCartTotal.value).toFixed(2))
+})
+
 const hasEligibleQrProducts = computed(() =>
   cartItems.value.some(
     (item) =>
@@ -201,6 +249,7 @@ const hasEligibleQrProducts = computed(() =>
       item.category_slug === 'aranjamente-florale',
   ),
 )
+
 const qrImage = computed(() => qr.value?.qr_image || '')
 const qrPath = computed(() => {
   if (!qr.value?.token) return ''
@@ -295,9 +344,16 @@ async function handleSubmit() {
       shipping_address: form.shipping_address.trim(),
       gift_message: form.gift_message.trim(),
       payment_method: form.payment_method,
-      items: cartItems.value.map((item) => ({
+      promo_type: hasBirthdayPromo.value ? 'birthday_week' : null,
+      promo_discount_percent: hasBirthdayPromo.value ? 10 : 0,
+      original_total: originalCartTotal.value,
+      final_total: finalCartTotal.value,
+      items: promoCartItems.value.map((item) => ({
         product_id: item.id,
         quantity: item.quantity,
+        unit_price: item.hasPromo ? item.finalPrice : item.price,
+        original_unit_price: item.price,
+        discount_percent: item.discountPercent || 0,
       })),
     }
 
@@ -404,6 +460,22 @@ async function handleStripePaid() {
 .item-total {
   font-weight: 600;
   white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.discount-row {
+  color: #8f5f6b;
 }
 
 .summary-total {
@@ -469,5 +541,21 @@ async function handleStripePaid() {
   gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+.promo-summary-badge {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #ffe3eb;
+  color: #b85c77;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.old-inline-price {
+  text-decoration: line-through;
+  color: #9ca3af;
+  margin-right: 6px;
 }
 </style>
