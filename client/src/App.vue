@@ -19,3 +19,9 @@ const hiddenNavbarRoutes = ['/login', '/register', '/forgot-password', '/reset-p
 
 const showNavbar = computed(() => !hiddenNavbarRoutes.includes(route.path))
 </script>
+<style scoped>
+html, body, #app {
+  height: 100%;
+}
+</style>
+
