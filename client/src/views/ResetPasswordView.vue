@@ -25,7 +25,7 @@
                 <input
                   id="password"
                   :type="showPassword ? 'text' : 'password'"
-                  placeholder="introdu parola nouă"
+                  placeholder="Parola nouă"
                   v-model="form.password"
                 />
                 <button type="button" class="eye" @click="showPassword = !showPassword">
@@ -49,7 +49,7 @@
                 <input
                   id="confirm_password"
                   :type="showConfirmPassword ? 'text' : 'password'"
-                  placeholder="confirmă parola"
+                  placeholder="Confirmă parola nouă"
                   v-model="form.confirm_password"
                 />
                 <button
