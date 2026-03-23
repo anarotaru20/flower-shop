@@ -47,7 +47,19 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         const data = await registerUser(payload)
-        this.successMessage = data?.message || 'Cont creat cu succes.'
+
+        const accessToken = data?.session?.access_token ?? null
+        this.token = accessToken
+
+        if (this.token) {
+          localStorage.setItem('token', this.token)
+          await this.fetchProfile()
+        } else {
+          this.user = null
+          localStorage.removeItem('token')
+        }
+
+        this.successMessage = null
         return data
       } catch (err) {
         this.error = err.response?.data?.message || 'A aparut o eroare la inregistrare.'

@@ -39,7 +39,7 @@
               <input
                 id="email"
                 type="email"
-                placeholder="introdu emailul tau"
+                placeholder="Emailul tau"
                 v-model.trim="form.email"
               />
             </div>
@@ -50,7 +50,7 @@
                 <input
                   id="password"
                   :type="showPassword ? 'text' : 'password'"
-                  placeholder="introdu parola"
+                  placeholder="Parola ta"
                   v-model="form.password"
                 />
                 <button type="button" class="eye" @click="showPassword = !showPassword">
@@ -578,6 +578,7 @@ async function handleForgotSubmit() {
 
 .auth-links .register-link {
   color: #c72c48;
+  font-weight: 600;
 }
 
 .auth-links .register-link:hover {
@@ -600,7 +601,7 @@ async function handleForgotSubmit() {
   background: none;
   border: none;
 }
-s .auth-links .back-home {
+.auth-links .back-home {
   font-size: 14px;
   color: #a08c83;
   text-decoration: none;
