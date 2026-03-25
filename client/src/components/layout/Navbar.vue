@@ -75,12 +75,12 @@
             <span class="nav-label">Profil</span>
           </RouterLink>
 
-          <RouterLink to="/orders" class="nav-item">
+          <!-- <RouterLink to="/orders" class="nav-item">
             <div class="nav-icon-wrap">
               <v-icon size="20">mdi-package-variant-closed</v-icon>
             </div>
             <span class="nav-label">Comenzi</span>
-          </RouterLink>
+          </RouterLink> -->
 
           <button class="nav-item logout-btn" @click="handleLogout">
             <div class="nav-icon-wrap">
@@ -288,7 +288,7 @@ function handleLogout() {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: rgba(255, 250, 247, 0.96);
+  background: linear-gradient(135deg, #fffaf7 0%, #fdf3ee 40%, #fffaf7 100%);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid #f1e6e1;
 }
@@ -320,7 +320,7 @@ function handleLogout() {
 }
 
 .brand-green {
-  color: #348b41;
+  color: #4c3a32;
 }
 
 .search-area {

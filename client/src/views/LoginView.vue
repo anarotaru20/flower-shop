@@ -531,7 +531,7 @@ async function handleForgotSubmit() {
 .auth-button {
   height: 56px;
   border: none;
-  border-radius: 50px;
+  border-radius:10px;
   margin-top: 15px;
   margin-bottom: 10px;
   background: #4c3a32;

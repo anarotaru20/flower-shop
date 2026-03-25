@@ -496,7 +496,7 @@ function mapResetError(message) {
   width: 100%;
   height: 56px;
   border: none;
-  border-radius: 50px;
+  border-radius: 10px;
   margin-top: 10px;
   background: #4c3a32;
   color: #fff;

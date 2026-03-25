@@ -677,7 +677,7 @@ async function handleSubmit() {
 .auth-button {
   height: 56px;
   border: none;
-  border-radius: 50px;
+  border-radius: 10px;
   margin-top: 8px;
   background: #4c3a32;
   color: #fff;

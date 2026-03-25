@@ -16,7 +16,12 @@
           Nu ai comenzi inca.
         </v-alert>
 
-        <v-card v-for="order in decoratedOrders" :key="order.id" class="mb-4 order-card" elevation="1">
+        <v-card
+          v-for="order in decoratedOrders"
+          :key="order.id"
+          class="mb-4 order-card"
+          elevation="1"
+        >
           <v-card-title class="d-flex justify-space-between flex-wrap ga-3">
             <div>
               <strong>#{{ order.invoice_number }}</strong>
@@ -202,6 +207,9 @@ async function handleCancelOrder(orderId) {
 </script>
 
 <style scoped>
+.orders-page {
+  background: #fff;
+}
 .order-card {
   border-radius: 18px;
 }

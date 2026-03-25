@@ -550,6 +550,7 @@ h1, h2, h3, .product-title, .footer-logo {
 /* FOOTER */
 .home-footer {
   background: #0f0e0d;
+  /* background: linear-gradient(135deg, #fffaf7 0%, #fdf3ee 40%, #fffaf7 100%); */
   color: #fff;
   padding: 100px 0 60px;
   margin-top: 40px;
