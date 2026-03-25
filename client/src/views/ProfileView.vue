@@ -187,27 +187,20 @@
                           location="bottom"
                           offset="10"
                         >
-                          <template #activator="{ props }">
-                            <div
-                              id="profile-birth-date"
-                              class="date-display profile-date-display"
-                              v-bind="props"
-                            >
-                              <span
-                                :class="profileForm.birth_date ? 'date-value' : 'date-placeholder'"
-                              >
-                                {{
-                                  profileForm.birth_date
-                                    ? formatBirthDate(profileForm.birth_date)
-                                    : 'Selectează data'
-                                }}
-                              </span>
-
-                              <button type="button" class="date-trigger">
-                                <v-icon size="20">mdi-calendar-month-outline</v-icon>
-                              </button>
-                            </div>
-                          </template>
+<template #activator="{ props }">
+  <v-text-field
+    v-bind="props"
+    id="profile-birth-date"
+    :model-value="profileForm.birth_date ? formatBirthDate(profileForm.birth_date) : ''"
+    placeholder="Selectează data"
+    variant="outlined"
+    density="comfortable"
+    readonly
+    hide-details
+    class="profile-field birth-date-field"
+    append-inner-icon="mdi-calendar-month-outline"
+  />
+</template>
 
                           <div class="birth-date-menu-card">
                             <v-date-picker
