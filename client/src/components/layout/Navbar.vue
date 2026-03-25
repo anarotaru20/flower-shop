@@ -57,6 +57,13 @@
       </div>
 
       <nav class="nav-links">
+        <!-- <RouterLink to="/orders" class="nav-item">
+            <div class="nav-icon-wrap">
+              <v-icon size="20">mdi-package-variant-closed</v-icon>
+            </div>
+            <span class="nav-label">Comenzi</span>
+          </RouterLink> -->
+
         <RouterLink to="/cart" class="nav-item">
           <div class="nav-icon-wrap cart-icon">
             <v-icon size="20">mdi-cart-outline</v-icon>
@@ -74,13 +81,6 @@
             </div>
             <span class="nav-label">Profil</span>
           </RouterLink>
-
-          <!-- <RouterLink to="/orders" class="nav-item">
-            <div class="nav-icon-wrap">
-              <v-icon size="20">mdi-package-variant-closed</v-icon>
-            </div>
-            <span class="nav-label">Comenzi</span>
-          </RouterLink> -->
 
           <button class="nav-item logout-btn" @click="handleLogout">
             <div class="nav-icon-wrap">
