@@ -2,14 +2,13 @@
   <section class="cart-page">
     <div class="container">
       <div class="page-header">
-        <h1>Cosul meu</h1>
-        <p>Produsele alese cu drag pentru urmatoarea ta comanda</p>
+        <h1>Produse în coș</h1>
       </div>
 
       <div v-if="!cartStore.items.length" class="empty-cart">
         <div class="empty-icon">🛒</div>
-        <h2>Cosul este gol</h2>
-        <p>Adauga produse din shop si revino aici pentru checkout.</p>
+        <h2>Coșsul este gol</h2>
+        <p>Adaugă produse din shop și revino aici pentru checkout.</p>
         <RouterLink to="/products" class="shop-link">Mergi la shop</RouterLink>
       </div>
 
@@ -20,7 +19,10 @@
           </div>
 
           <article v-for="item in promoCartItems" :key="item.id" class="cart-item">
-            <div class="item-image">🌸</div>
+            <div class="item-image">
+              <img v-if="item.image_url" :src="item.image_url" :alt="item.name" loading="lazy" />
+              <div v-else class="fallback-emoji">🌸</div>
+            </div>
 
             <div class="item-info">
               <RouterLink :to="`/products/${item.slug}`" class="item-name">
@@ -33,12 +35,10 @@
 
               <p class="item-price">
                 <span v-if="item.hasPromo" class="old-price">
-                  {{ Number(item.price).toFixed(2) }} RON
+                  {{ Number(item.price).toFixed(2) }} lei
                 </span>
-                {{ Number(item.finalPrice).toFixed(2) }} RON / buc
+                {{ Number(item.finalPrice).toFixed(2) }} lei / buc
               </p>
-
-              <p class="item-stock">Stoc disponibil: {{ item.stock }}</p>
             </div>
 
             <div class="item-actions">
@@ -58,18 +58,18 @@
 
               <p class="item-total">
                 <span v-if="item.hasPromo" class="old-total">
-                  {{ (Number(item.price) * item.quantity).toFixed(2) }} RON
+                  {{ (Number(item.price) * item.quantity).toFixed(2) }} lei
                 </span>
-                {{ (Number(item.finalPrice) * item.quantity).toFixed(2) }} RON
+                {{ (Number(item.finalPrice) * item.quantity).toFixed(2) }} lei
               </p>
 
-              <button class="remove-btn" @click="cartStore.removeFromCart(item.id)">Elimina</button>
+              <button class="remove-btn" @click="cartStore.removeFromCart(item.id)">Șterge</button>
             </div>
           </article>
         </div>
 
         <aside class="cart-summary">
-          <h2>Sumar comanda</h2>
+          <h2>Comandă</h2>
 
           <div class="summary-row">
             <span>Produse</span>
@@ -78,22 +78,30 @@
 
           <div v-if="hasBirthdayPromo" class="summary-row">
             <span>Subtotal initial</span>
-            <span>{{ originalCartTotal.toFixed(2) }} RON</span>
+            <span>{{ originalCartTotal.toFixed(2) }} lei</span>
           </div>
 
           <div v-if="hasBirthdayPromo" class="summary-row discount-row">
             <span>Reducere aniversara</span>
-            <span>- {{ discountAmount.toFixed(2) }} RON</span>
+            <span>- {{ discountAmount.toFixed(2) }} lei</span>
           </div>
 
           <div class="summary-row total">
             <span>Total</span>
-            <span>{{ finalCartTotal.toFixed(2) }} RON</span>
+            <span>{{ finalCartTotal.toFixed(2) }} lei</span>
+          </div>
+          <div class="summary-row">
+            <span>Transport</span>
+            <span>Calculat la finalizarea comenzii</span>
           </div>
 
-          <v-btn color="primary" @click="goToCheckout"> Continua spre checkout </v-btn>
+          <RouterLink to="/products" class="back-home">← Continuă cumparaturile</RouterLink>
 
-          <button class="clear-btn" @click="cartStore.clearCart()">Goleste cosul</button>
+          <v-btn class="checkout-order-btn" color="primary" @click="goToCheckout">
+            Continua spre plată
+          </v-btn>
+
+          <button class="clear-btn" @click="cartStore.clearCart()">Golește coșul</button>
         </aside>
       </div>
     </div>
@@ -115,9 +123,7 @@ const userBirthDate = computed(() => authStore.user?.birth_date || null)
 const hasBirthdayPromo = computed(() => isBirthdayWeek(userBirthDate.value))
 
 const promoCartItems = computed(() => {
-  return (cartStore.items || []).map((item) =>
-    getProductPromoData(item, userBirthDate.value)
-  )
+  return (cartStore.items || []).map((item) => getProductPromoData(item, userBirthDate.value))
 })
 
 const originalCartTotal = computed(() => {
@@ -144,7 +150,7 @@ function goToCheckout() {
 <style scoped>
 .cart-page {
   padding: 40px 0;
-  background: #fffaf7;
+  background: #ffffff;
   min-height: calc(100vh - 80px);
 }
 
@@ -169,7 +175,7 @@ function goToCheckout() {
 
 .empty-cart {
   background: #ffffff;
-  border: 1px solid #f1e6e1;
+  border: 2px solid #f1e6e1;
   border-radius: 24px;
   padding: 48px 24px;
   text-align: center;
@@ -198,9 +204,9 @@ function goToCheckout() {
   padding: 0 22px;
   border-radius: 999px;
   text-decoration: none;
-  background: #dba4b2;
+  font-weight: 600;
+  background: #b9364e;
   color: white;
-  font-weight: 700;
 }
 
 .cart-layout {
@@ -244,6 +250,27 @@ function goToCheckout() {
   align-items: center;
   justify-content: center;
   font-size: 42px;
+}
+
+.item-image img {
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  object-fit: cover;
+}
+
+.fallback-emoji {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+}
+
+.fallback-emoji {
+  background: #fdf1f4;
+  border-radius: 18px;
 }
 
 .item-name {
@@ -298,7 +325,7 @@ function goToCheckout() {
   height: 32px;
   border: none;
   border-radius: 999px;
-  background: #dba4b2;
+  background: #b9364e;
   color: white;
   font-size: 18px;
   cursor: pointer;
@@ -337,14 +364,17 @@ function goToCheckout() {
 .remove-btn {
   border: none;
   background: transparent;
-  color: #c75c5c;
-  font-weight: 700;
+  color: #fd0000;
+  font-weight: 600;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
   cursor: pointer;
+  font-size: 13px;
 }
 
 .cart-summary {
-  background: #ffffff;
-  border: 1px solid #f1e6e1;
+  background: rgba(255, 255, 255, 0.696);
+  border: 2px solid #f1e6e1;
   border-radius: 24px;
   padding: 24px;
   position: sticky;
@@ -389,17 +419,37 @@ function goToCheckout() {
   font-weight: 700;
   margin-top: 20px;
 }
-
+.checkout-order-btn {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  background: #b9364e;
+  color: white;
+  cursor: pointer;
+}
 .clear-btn {
   width: 100%;
   min-height: 46px;
   margin-top: 12px;
-  border: 1px solid #eadcd6;
-  border-radius: 999px;
-  background: #fff7f3;
-  color: #8f5f6b;
-  font-weight: 700;
+  border-radius: 10px;
+  font-weight: 600;
+  color: #b9364e;
+  border: 1px solid #f3c4cd;
+  background: #fff1f4;
   cursor: pointer;
+}
+.back-home {
+  border-top: 1px solid #f1e6e1;
+  padding-top: 15px;
+  padding-bottom: 10px;
+  margin-top: 25px;
+  font-size: 14px;
+  color: #a08c83;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: flex;
 }
 
 @media (max-width: 900px) {
