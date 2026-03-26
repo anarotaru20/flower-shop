@@ -1,15 +1,11 @@
 <template>
   <v-container class="py-8">
     <div class="checkout-page">
-      <div class="checkout-header">
-        <h1 class="checkout-title">Checkout</h1>
-        <p class="checkout-subtitle">Completeaza datele pentru plasarea comenzii</p>
-      </div>
-
-      <div v-if="!cartItems.length && !orderPlaced" class="empty-cart">
-        <v-alert type="warning" variant="tonal"> Cosul tau este gol. </v-alert>
-
-        <v-btn color="primary" class="mt-4" @click="goToProducts"> Mergi la produse </v-btn>
+      <div v-if="!cartItems.length && !orderPlaced" class="empty-cart-one">
+        <div class="empty-icon">🛒</div>
+        <h2>Coșul este gol</h2>
+        <p>Adaugă produse din shop și revino aici pentru checkout.</p>
+        <RouterLink to="/products" class="shop-link">Mergi la magazin</RouterLink>
       </div>
 
       <div v-else-if="orderPlaced" class="success-wrapper">
@@ -26,17 +22,18 @@
               <img :src="qrImage" alt="QR Code" class="qr-image" />
 
               <div class="qr-actions">
-                <v-btn color="primary" @click="goToQrPage">Vezi pagina QR</v-btn>
+                <v-btn class="view-qr" @click="goToQrPage">Vezi pagina QR</v-btn>
               </div>
             </div>
 
-            <v-alert v-else type="info" variant="tonal" class="mt-4">
+            <v-alert v-else type="info" variant="tonal" color="warning" class="mt-4">
               Comanda a fost plasata, dar nu exista un QR disponibil pentru aceasta comanda.
             </v-alert>
 
             <div class="actions mt-6">
-              <v-btn variant="outlined" @click="goToProducts">Continua cumparaturile</v-btn>
-              <v-btn color="primary" @click="goToOrders">Vezi comenzile</v-btn>
+              <v-btn variant="outlined" class="back-btn" @click="goToProducts"
+                >Continua cumparaturile</v-btn
+              >
             </div>
           </v-card-text>
         </v-card>
@@ -48,28 +45,28 @@
             <v-card-title class="section-title">Date livrare</v-card-title>
 
             <v-card-text>
-              <v-form @submit.prevent="handleSubmit">
+              <v-form class="delivery-form" @submit.prevent="handleSubmit">
+                <div class="payment-label">Nume complet</div>
                 <v-text-field
                   v-model="form.customer_name"
-                  label="Nume complet"
                   variant="outlined"
                   density="comfortable"
                   class="mb-3"
                   :error-messages="errors.customer_name"
                 />
 
+                <div class="payment-label">Telefon</div>
                 <v-text-field
                   v-model="form.phone"
-                  label="Telefon"
                   variant="outlined"
                   density="comfortable"
                   class="mb-3"
                   :error-messages="errors.phone"
                 />
 
+                <div class="payment-label">Adresă</div>
                 <v-textarea
                   v-model="form.shipping_address"
-                  label="Adresa de livrare"
                   variant="outlined"
                   density="comfortable"
                   rows="4"
@@ -77,42 +74,66 @@
                   :error-messages="errors.shipping_address"
                 />
 
-                <v-textarea
-                  v-if="hasEligibleQrProducts"
-                  v-model="form.gift_message"
-                  label="Mesaj pentru plante / buchet"
-                  variant="outlined"
-                  density="comfortable"
-                  rows="4"
-                  class="mb-3"
-                  placeholder="Scrie un mesaj dragut care va fi afisat dupa scanarea codului QR"
-                  counter="300"
-                />
+                <div v-if="hasEligibleQrProducts">
+                  <div class="payment-label">Mesaj pentru plante / buchet</div>
+
+                  <v-textarea
+                    v-model="form.gift_message"
+                    variant="outlined"
+                    density="comfortable"
+                    rows="4"
+                    class="mb-3"
+                    placeholder="Scrie un mesaj care va fi afisat dupa scanarea codului QR"
+                    counter="300"
+                  />
+                </div>
 
                 <div class="payment-label">Metoda de plata</div>
 
                 <v-radio-group
                   v-model="form.payment_method"
                   :error-messages="errors.payment_method"
-                  class="mb-4 payment-radio-group"
+                  class="payment-radio-group"
+                  color="#b9364e"
                   inline
                 >
-                  <v-radio label="Cash la livrare" value="cash" color="primary" />
-                  <v-radio label="Card" value="card" color="primary" />
+                  <v-radio label="Cash la livrare" value="cash" />
+                  <v-radio label="Card" value="card" />
                 </v-radio-group>
 
-                <div v-if="showStripePayment && createdOrderId" class="mt-4">
-                  <StripePaymentForm :order-id="createdOrderId" @paid="handleStripePaid" />
-                </div>
+                <v-dialog v-model="stripeDialog" max-width="640">
+                  <v-card class="stripe-dialog-card" elevation="0">
+                    <v-card-title class="section-title d-flex align-center justify-space-between">
+                      <span>Plată cu cardul</span>
+
+                      <v-btn icon variant="text" @click="stripeDialog = false">
+                        <v-icon>mdi-close</v-icon>
+                      </v-btn>
+                    </v-card-title>
+
+                    <v-card-text class="pt-6">
+                      <StripePaymentForm
+                        v-if="createdOrderId"
+                        :order-id="createdOrderId"
+                        @paid="handleStripePaid"
+                      />
+                    </v-card-text>
+                  </v-card>
+                </v-dialog>
 
                 <v-alert v-if="submitError" type="error" variant="tonal" class="mb-4">
                   {{ submitError }}
                 </v-alert>
 
                 <div class="actions">
-                  <v-btn variant="outlined" @click="goBackToCart"> Inapoi la cos </v-btn>
+                  <v-btn class="back-btn" @click="goBackToCart">Inapoi la cos</v-btn>
 
-                  <v-btn v-if="!showStripePayment" color="primary" type="submit" :loading="loading">
+                  <v-btn
+                    v-if="!showStripePayment"
+                    class="checkout-btn"
+                    type="submit"
+                    :loading="loading"
+                  >
                     {{ form.payment_method === 'card' ? 'Continua la plata' : 'Plaseaza comanda' }}
                   </v-btn>
                 </div>
@@ -123,13 +144,9 @@
 
         <v-col cols="12" md="5">
           <v-card class="checkout-card summary-card" elevation="0">
-            <v-card-title class="section-title">Sumar comanda</v-card-title>
+            <v-card-title class="section-title">Comandă</v-card-title>
 
             <v-card-text>
-              <div v-if="hasBirthdayPromo" class="promo-summary-badge">
-                Birthday Week: reducere 10% aplicata
-              </div>
-
               <div v-for="item in promoCartItems" :key="item.id" class="summary-item">
                 <div>
                   <div class="item-name">{{ item.name }}</div>
@@ -150,8 +167,6 @@
                 </div>
               </div>
 
-              <v-divider class="my-4" />
-
               <div v-if="hasBirthdayPromo" class="summary-row discount-row">
                 <span>Subtotal initial</span>
                 <span>{{ formatPrice(originalCartTotal) }}</span>
@@ -162,9 +177,21 @@
                 <span>- {{ formatPrice(discountAmount) }}</span>
               </div>
 
+              <div class="summary-row">
+                <span>Subtotal</span>
+                <span>{{ formatPrice(finalCartTotal) }}</span>
+              </div>
+
+              <div class="summary-row">
+                <span>Taxe</span>
+                <span>{{ formatPrice(taxAmount) }}</span>
+              </div>
+
+              <v-divider class="my-4" />
+
               <div class="summary-total">
-                <span>Total</span>
-                <strong>{{ formatPrice(finalCartTotal) }}</strong>
+                <span>Total de plată</span>
+                <strong>{{ formatPrice(totalWithTax) }}</strong>
               </div>
             </v-card-text>
           </v-card>
@@ -175,7 +202,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, computed, watch } from 'vue'
+import { reactive, ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useCartStore } from '@/stores/cart'
@@ -196,6 +223,7 @@ const authStore = useAuthStore()
 const { qr } = storeToRefs(qrStore)
 
 const createdOrderId = ref('')
+const stripeDialog = ref(false)
 const showStripePayment = ref(false)
 const loading = ref(false)
 const submitError = ref('')
@@ -208,6 +236,35 @@ const form = reactive({
   gift_message: '',
   payment_method: 'cash',
 })
+
+function fillFormFromUser() {
+  const user = authStore.user || {}
+
+  const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ').trim()
+
+  form.customer_name = fullName || ''
+  form.shipping_address = user.address || ''
+}
+
+onMounted(async () => {
+  if (!authStore.user) {
+    try {
+      await authStore.fetchProfile()
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  fillFormFromUser()
+})
+
+watch(
+  () => authStore.user,
+  () => {
+    fillFormFromUser()
+  },
+  { immediate: true },
+)
 
 const errors = reactive({
   customer_name: '',
@@ -244,6 +301,7 @@ const hasEligibleQrProducts = computed(() =>
   cartItems.value.some(
     (item) =>
       item.category_slug === 'plante-interior' ||
+      item.category_slug === 'plante-exterior' ||
       item.category_slug === 'plante-propagare' ||
       item.category_slug === 'buchete-flori' ||
       item.category_slug === 'aranjamente-florale',
@@ -272,22 +330,32 @@ function resetErrors() {
   errors.payment_method = ''
 }
 
+const taxRate = 0.19
+
+const taxAmount = computed(() => {
+  return Number((finalCartTotal.value * taxRate).toFixed(2))
+})
+
+const totalWithTax = computed(() => {
+  return Number((finalCartTotal.value + taxAmount.value).toFixed(2))
+})
+
 function validateForm() {
   resetErrors()
   let isValid = true
 
   if (!form.customer_name.trim()) {
-    errors.customer_name = 'Numele este obligatoriu'
+    errors.customer_name = 'Câmp obligatoriu'
     isValid = false
   }
 
   if (!form.phone.trim()) {
-    errors.phone = 'Telefonul este obligatoriu'
+    errors.phone = 'Câmp obligatoriu'
     isValid = false
   }
 
   if (!form.shipping_address.trim()) {
-    errors.shipping_address = 'Adresa este obligatorie'
+    errors.shipping_address = 'Câmp obligatoriu'
     isValid = false
   }
 
@@ -313,11 +381,11 @@ function goToOrders() {
 
 async function generateQrForOrder(orderId) {
   try {
-    if (!form.gift_message.trim()) return
+    if (!hasEligibleQrProducts.value) return
 
     await qrStore.createQr({
       order_id: orderId,
-      message: form.gift_message.trim(),
+      message: form.gift_message.trim() || '',
     })
   } catch (qrError) {
     console.error('QR generation failed:', qrError)
@@ -363,7 +431,7 @@ async function handleSubmit() {
 
     if (form.payment_method === 'card') {
       createdOrderId.value = order.id
-      showStripePayment.value = true
+      stripeDialog.value = true
       return
     }
 
@@ -391,7 +459,7 @@ async function handleStripePaid() {
 <style scoped>
 .checkout-page {
   max-width: 1200px;
-  background: #fffaf7;
+  background: #fff;
   margin: 0 auto;
 }
 
@@ -411,14 +479,19 @@ async function handleStripePaid() {
 }
 
 .checkout-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.696);
+  border: 3px solid #f1e6e1;
+  border-radius: 24px;
+  padding: 24px;
+  position: sticky;
+  top: 92px;
 }
 
 .section-title {
-  font-size: 18px;
+  font-size: 25px;
   font-weight: 600;
-  padding-bottom: 0;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f1e6e1;
 }
 
 .payment-label {
@@ -430,13 +503,20 @@ async function handleStripePaid() {
 
 .actions {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+  padding-top: 20px;
 }
 
 .summary-card {
+  background: rgba(255, 255, 255, 0.696);
+  border: 3px solid #f1e6e1;
+  border-radius: 24px;
+  padding: 24px;
   position: sticky;
-  top: 24px;
+  top: 92px;
 }
 
 .summary-item {
@@ -444,6 +524,8 @@ async function handleStripePaid() {
   justify-content: space-between;
   gap: 16px;
   padding: 12px 0;
+  font-size: 15px;
+  border-bottom: 1px solid #f1e6e1;
 }
 
 .item-name {
@@ -472,6 +554,7 @@ async function handleStripePaid() {
   align-items: center;
   font-size: 14px;
   margin-bottom: 10px;
+  padding-top: 15px;
 }
 
 .discount-row {
@@ -483,24 +566,23 @@ async function handleStripePaid() {
   justify-content: space-between;
   align-items: center;
   font-size: 18px;
+  font-weight: 700;
+  color: #5a514d;
 }
 
 .empty-cart {
   max-width: 500px;
 }
 
-.payment-radio-group {
-  padding: 8px 0 4px;
+:deep(.payment-radio-group .v-selection-control-group) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
 }
 
 :deep(.payment-radio-group .v-selection-control) {
   min-height: 44px;
-}
-
-:deep(.payment-radio-group .v-label) {
-  opacity: 1;
-  color: #111827;
-  font-size: 15px;
+  margin: 0;
 }
 
 .success-wrapper {
@@ -515,6 +597,7 @@ async function handleStripePaid() {
 .success-text {
   color: #4b5563;
   margin: 0 0 20px;
+  padding-top: 25px;
 }
 
 .qr-preview {
@@ -525,7 +608,6 @@ async function handleStripePaid() {
   padding: 24px;
   border-radius: 18px;
   background: #fff;
-  border: 1px solid #f1f5f9;
 }
 
 .qr-image {
@@ -557,5 +639,70 @@ async function handleStripePaid() {
   text-decoration: line-through;
   color: #9ca3af;
   margin-right: 6px;
+}
+.delivery-form {
+  padding-top: 25px;
+}
+.checkout-btn {
+  margin-top: 15px;
+  margin-bottom: 5px;
+  border-radius: 10px;
+  padding-inline: 22px;
+  padding: 20px;
+  text-transform: none;
+  font-weight: 600;
+  background: #b9364e;
+  color: white;
+}
+
+.back-btn {
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: 700;
+  color: #b9364e;
+  border: 1px solid #f3c4cd;
+  background: #fff1f4;
+}
+
+.stripe-dialog-card {
+  background: #fff;
+  border: 3px solid #f1e6e1;
+  border-radius: 24px;
+  padding: 12px;
+}
+.empty-cart-one {
+  background: #ffffff;
+  border: 2px solid #f1e6e1;
+  border-radius: 24px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+.shop-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  background: #b9364e;
+  color: white;
+}
+
+.view-qr {
+  margin-top: 15px;
+  margin-bottom: 5px;
+  padding-inline: 22px;
+  padding: 20px;
+  text-transform: none;
+  font-weight: 600;
+  background: #b9364e;
+  color: white;
 }
 </style>

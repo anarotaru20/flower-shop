@@ -1939,7 +1939,7 @@ function formatOrderShortDate(date) {
 function formatOrderStatus(status) {
   const map = {
     pending: 'În procesare',
-    confirmed: 'Confirmată',
+    confirmed: 'Plătită',
     paid: 'Plătită',
     delivered: 'Livrată',
     cancelled: 'Anulată',

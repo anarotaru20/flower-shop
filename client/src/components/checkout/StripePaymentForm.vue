@@ -12,15 +12,11 @@
       {{ submitError }}
     </v-alert>
 
-    <v-btn
-      v-if="!loading && !errorMessage"
-      color="primary"
-      class="mt-4"
-      :loading="confirming"
-      @click="handlePay"
-    >
-      Plateste cu cardul
-    </v-btn>
+    <div v-if="!loading && !errorMessage" class="paycard-actions">
+      <v-btn class="paycard-btn" :loading="confirming" @click="handlePay">
+        Platește cu cardul
+      </v-btn>
+    </div>
   </div>
 </template>
 
@@ -111,11 +107,31 @@ async function handlePay() {
 </script>
 
 <style scoped>
+.stripe-wrap{
+  min-width: 550px;
+}
 .payment-element {
-  padding: 14px;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
   background: #fff;
   min-height: 70px;
+}
+
+.paycard-btn {
+  margin-top: 15px;
+  margin-bottom: 5px;
+  border-radius: 10px;
+  padding-inline: 22px;
+  padding: 20px;
+  text-transform: none;
+  font-weight: 600;
+  background: #b9364e;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.paycard-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

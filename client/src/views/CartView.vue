@@ -5,11 +5,15 @@
         <h1>Produse în coș</h1>
       </div>
 
+      <v-snackbar v-model="toast.show" :timeout="3500" location="top right" color="error">
+        {{ toast.message }}
+      </v-snackbar>
+
       <div v-if="!cartStore.items.length" class="empty-cart">
         <div class="empty-icon">🛒</div>
-        <h2>Coșsul este gol</h2>
+        <h2>Coșul este gol</h2>
         <p>Adaugă produse din shop și revino aici pentru checkout.</p>
-        <RouterLink to="/products" class="shop-link">Mergi la shop</RouterLink>
+        <RouterLink to="/products" class="shop-link">Mergi la magazin</RouterLink>
       </div>
 
       <div v-else class="cart-layout">
@@ -109,15 +113,22 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
 import { isBirthdayWeek, getProductPromoData } from '@/utils/promotions'
+import { useProductsStore } from '@/stores/products'
 
 const router = useRouter()
 const cartStore = useCartStore()
 const authStore = useAuthStore()
+const productsStore = useProductsStore()
+
+const toast = ref({
+  show: false,
+  message: '',
+})
 
 const userBirthDate = computed(() => authStore.user?.birth_date || null)
 const hasBirthdayPromo = computed(() => isBirthdayWeek(userBirthDate.value))
@@ -142,7 +153,35 @@ const discountAmount = computed(() => {
   return Number((originalCartTotal.value - finalCartTotal.value).toFixed(2))
 })
 
-function goToCheckout() {
+async function validateCartStock() {
+  if (!productsStore.products?.length) {
+    await productsStore.fetchProducts()
+  }
+
+  const invalidItem = cartStore.items.find((cartItem) => {
+    const product = productsStore.products.find((p) => p.id === cartItem.id)
+
+    if (!product) {
+      return false
+    }
+
+    return Number(cartItem.quantity) > Number(product.stock)
+  })
+
+  return invalidItem
+}
+
+async function goToCheckout() {
+  const invalidItem = await validateCartStock()
+
+  if (invalidItem) {
+    const product = productsStore.products.find((p) => p.id === invalidItem.id)
+
+    toast.value.message = `Stoc insuficient pentru produsul: ${invalidItem.name}. Disponibil: ${product?.stock ?? 0} buc.`
+    toast.value.show = true
+    return
+  }
+
   router.push('/checkout')
 }
 </script>
@@ -202,7 +241,7 @@ function goToCheckout() {
   justify-content: center;
   min-height: 48px;
   padding: 0 22px;
-  border-radius: 999px;
+  border-radius: 10px;
   text-decoration: none;
   font-weight: 600;
   background: #b9364e;
@@ -374,7 +413,7 @@ function goToCheckout() {
 
 .cart-summary {
   background: rgba(255, 255, 255, 0.696);
-  border: 2px solid #f1e6e1;
+  border: 3px solid #f1e6e1;
   border-radius: 24px;
   padding: 24px;
   position: sticky;
@@ -419,6 +458,7 @@ function goToCheckout() {
   font-weight: 700;
   margin-top: 20px;
 }
+
 .checkout-order-btn {
   width: 100%;
   min-height: 46px;
@@ -429,6 +469,7 @@ function goToCheckout() {
   color: white;
   cursor: pointer;
 }
+
 .clear-btn {
   width: 100%;
   min-height: 46px;
@@ -440,6 +481,7 @@ function goToCheckout() {
   background: #fff1f4;
   cursor: pointer;
 }
+
 .back-home {
   border-top: 1px solid #f1e6e1;
   padding-top: 15px;

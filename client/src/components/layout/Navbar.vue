@@ -6,102 +6,135 @@
         <span class="brand-green">era</span>
       </RouterLink>
 
-      <!-- searchbar -->
-      <div class="search-area" ref="searchRef">
-        <form class="search-form" @submit.prevent="handleSearchSubmit">
-          <input
-            v-model.trim="searchQuery"
-            type="text"
-            class="search-input"
-            placeholder="Caută buchete, plante, accesorii..."
-            @focus="showSuggestions = true"
-          />
-          <button v-if="searchQuery" type="button" class="search-btn" @click="clearSearch">
-            <v-icon size="20">mdi-close</v-icon>
-          </button>
+      <template v-if="!isQrPage">
+        <div class="search-area" ref="searchRef">
+          <form class="search-form" @submit.prevent="handleSearchSubmit">
+            <input
+              v-model.trim="searchQuery"
+              type="text"
+              class="search-input"
+              placeholder="Caută buchete, plante, accesorii..."
+              @focus="showSuggestions = true"
+            />
+            <button v-if="searchQuery" type="button" class="search-btn" @click="clearSearch">
+              <v-icon size="20">mdi-close</v-icon>
+            </button>
 
-          <button v-else type="submit" class="search-btn" aria-label="Caută">
-            <v-icon size="20">mdi-magnify</v-icon>
-          </button>
-        </form>
+            <button v-else type="submit" class="search-btn" aria-label="Caută">
+              <v-icon size="20">mdi-magnify</v-icon>
+            </button>
+          </form>
 
-        <div v-if="showSuggestions && searchQuery" class="search-suggestions">
-          <template v-if="filteredSuggestions.length">
-            <RouterLink
-              v-for="product in filteredSuggestions"
-              :key="product.id"
-              :to="`/products/${product.slug}`"
-              class="search-suggestion-item"
-              @click="closeSearch"
-            >
-              <div class="search-suggestion-image">
-                <img v-if="product.image_url" :src="product.image_url" :alt="product.name" />
-                <div v-else class="search-suggestion-image-placeholder">🌸</div>
-              </div>
-
-              <div class="search-suggestion-info">
-                <div class="search-suggestion-name">
-                  {{ product.name }}
+          <div v-if="showSuggestions && searchQuery" class="search-suggestions">
+            <template v-if="filteredSuggestions.length">
+              <RouterLink
+                v-for="product in filteredSuggestions"
+                :key="product.id"
+                :to="`/products/${product.slug}`"
+                class="search-suggestion-item"
+                @click="closeSearch"
+              >
+                <div class="search-suggestion-image">
+                  <img v-if="product.image_url" :src="product.image_url" :alt="product.name" />
+                  <div v-else class="search-suggestion-image-placeholder">🌸</div>
                 </div>
-                <div class="search-suggestion-price">{{ product.price }} RON</div>
+
+                <div class="search-suggestion-info">
+                  <div class="search-suggestion-name">
+                    {{ product.name }}
+                  </div>
+                  <div class="search-suggestion-price">{{ product.price }} RON</div>
+                </div>
+              </RouterLink>
+
+              <button type="button" class="search-see-all" @click="handleSearchSubmit">
+                Apasă Enter pentru toate rezultatele →
+              </button>
+            </template>
+
+            <div v-else class="search-no-results">Nu am găsit produse pentru „{{ searchQuery }}”</div>
+          </div>
+        </div>
+
+        <nav class="nav-links">
+          <RouterLink to="/cart" class="nav-item">
+            <div class="nav-icon-wrap cart-icon">
+              <v-icon size="20">mdi-cart-outline</v-icon>
+              <span v-if="cart.cartCount" class="cart-badge">
+                {{ cart.cartCount }}
+              </span>
+            </div>
+            <span class="nav-label">Coș</span>
+          </RouterLink>
+
+          <template v-if="isAuthenticated">
+            <RouterLink to="/profile" class="nav-item">
+              <div class="nav-icon-wrap">
+                <v-icon size="20">mdi-account-outline</v-icon>
               </div>
+              <span class="nav-label">Profil</span>
             </RouterLink>
 
-            <button type="button" class="search-see-all" @click="handleSearchSubmit">
-              Apasă Enter pentru toate rezultatele →
+            <button class="nav-item logout-btn" @click="handleLogout">
+              <div class="nav-icon-wrap">
+                <v-icon size="20">mdi-logout-variant</v-icon>
+              </div>
+              <span class="nav-label">Logout</span>
             </button>
           </template>
 
-          <div v-else class="search-no-results">Nu am găsit produse pentru „{{ searchQuery }}”</div>
-        </div>
-      </div>
+          <template v-else>
+            <RouterLink to="/login" class="nav-item">
+              <div class="nav-icon-wrap">
+                <v-icon size="20">mdi-account-outline</v-icon>
+              </div>
+              <span class="nav-label">Intra în cont</span>
+            </RouterLink>
+          </template>
+        </nav>
+      </template>
 
-      <nav class="nav-links">
-        <!-- <RouterLink to="/orders" class="nav-item">
-            <div class="nav-icon-wrap">
-              <v-icon size="20">mdi-package-variant-closed</v-icon>
-            </div>
-            <span class="nav-label">Comenzi</span>
-          </RouterLink> -->
+      <template v-else>
+        <nav class="nav-links qr-nav-links">
+          <template v-if="isAuthenticated">
+            <RouterLink to="/cart" class="nav-item">
+              <div class="nav-icon-wrap cart-icon">
+                <v-icon size="20">mdi-cart-outline</v-icon>
+                <span v-if="cart.cartCount" class="cart-badge">
+                  {{ cart.cartCount }}
+                </span>
+              </div>
+              <span class="nav-label">Coș</span>
+            </RouterLink>
 
-        <RouterLink to="/cart" class="nav-item">
-          <div class="nav-icon-wrap cart-icon">
-            <v-icon size="20">mdi-cart-outline</v-icon>
-            <span v-if="cart.cartCount" class="cart-badge">
-              {{ cart.cartCount }}
-            </span>
-          </div>
-          <span class="nav-label">Coș</span>
-        </RouterLink>
+            <RouterLink to="/profile" class="nav-item">
+              <div class="nav-icon-wrap">
+                <v-icon size="20">mdi-account-outline</v-icon>
+              </div>
+              <span class="nav-label">Profil</span>
+            </RouterLink>
 
-        <template v-if="isAuthenticated">
-          <RouterLink to="/profile" class="nav-item">
-            <div class="nav-icon-wrap">
-              <v-icon size="20">mdi-account-outline</v-icon>
-            </div>
-            <span class="nav-label">Profil</span>
-          </RouterLink>
+            <button class="nav-item logout-btn" @click="handleLogout">
+              <div class="nav-icon-wrap">
+                <v-icon size="20">mdi-logout-variant</v-icon>
+              </div>
+              <span class="nav-label">Logout</span>
+            </button>
+          </template>
 
-          <button class="nav-item logout-btn" @click="handleLogout">
-            <div class="nav-icon-wrap">
-              <v-icon size="20">mdi-logout-variant</v-icon>
-            </div>
-            <span class="nav-label">Logout</span>
-          </button>
-        </template>
-
-        <template v-else>
-          <RouterLink to="/login" class="nav-item">
-            <div class="nav-icon-wrap">
-              <v-icon size="20">mdi-account-outline</v-icon>
-            </div>
-            <span class="nav-label">Intra în cont</span>
-          </RouterLink>
-        </template>
-      </nav>
+          <template v-else>
+            <RouterLink to="/login" class="nav-item qr-login-btn">
+              <div class="nav-icon-wrap">
+                <v-icon size="20">mdi-account-outline</v-icon>
+              </div>
+              <span class="nav-label">Intra în cont</span>
+            </RouterLink>
+          </template>
+        </nav>
+      </template>
     </div>
 
-    <div class="navbar-bottom" @mouseleave="activeCategory = null">
+    <div v-if="!isQrPage" class="navbar-bottom" @mouseleave="activeCategory = null">
       <div class="container category-row">
         <div
           v-for="category in categoriesWithProducts"
@@ -177,6 +210,7 @@ const activeCategory = ref(null)
 const searchQuery = ref('')
 const showSuggestions = ref(false)
 const searchRef = ref(null)
+const isQrPage = computed(() => route.path.startsWith('/qr'))
 
 watch(
   () => route.fullPath,
@@ -187,12 +221,14 @@ watch(
 )
 
 onMounted(async () => {
-  if (!categoriesStore.categories.length) {
-    await categoriesStore.fetchCategories()
-  }
+  if (!isQrPage.value) {
+    if (!categoriesStore.categories.length) {
+      await categoriesStore.fetchCategories()
+    }
 
-  if (!productsStore.products.length) {
-    await productsStore.fetchProducts()
+    if (!productsStore.products.length) {
+      await productsStore.fetchProducts()
+    }
   }
 
   document.addEventListener('mousedown', handleClickOutside)
@@ -482,6 +518,11 @@ function handleLogout() {
   justify-content: flex-end;
 }
 
+.qr-nav-links {
+  width: 100%;
+  justify-content: flex-end;
+}
+
 .nav-links a {
   text-decoration: none;
 }
@@ -558,6 +599,10 @@ function handleLogout() {
 
 .logout-btn:hover {
   color: #c48797;
+}
+
+.qr-login-btn {
+  min-width: 100px;
 }
 
 .navbar-bottom {
@@ -711,6 +756,10 @@ function handleLogout() {
     width: 100%;
     justify-content: flex-start;
     gap: 14px;
+  }
+
+  .qr-nav-links {
+    justify-content: flex-start;
   }
 }
 
