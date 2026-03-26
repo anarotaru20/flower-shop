@@ -1237,7 +1237,8 @@ background: #fff1f4;
 }
 
 .invoice-classic-body {
-  padding: 24px;
+  padding: 30px;
+  overflow-y: scroll;
 }
 
 .invoice-classic-parties {

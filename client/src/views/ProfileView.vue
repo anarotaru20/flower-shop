@@ -187,20 +187,24 @@
                           location="bottom"
                           offset="10"
                         >
-<template #activator="{ props }">
-  <v-text-field
-    v-bind="props"
-    id="profile-birth-date"
-    :model-value="profileForm.birth_date ? formatBirthDate(profileForm.birth_date) : ''"
-    placeholder="Selectează data"
-    variant="outlined"
-    density="comfortable"
-    readonly
-    hide-details
-    class="profile-field birth-date-field"
-    append-inner-icon="mdi-calendar-month-outline"
-  />
-</template>
+                          <template #activator="{ props }">
+                            <v-text-field
+                              v-bind="props"
+                              id="profile-birth-date"
+                              :model-value="
+                                profileForm.birth_date
+                                  ? formatBirthDate(profileForm.birth_date)
+                                  : ''
+                              "
+                              placeholder="Selectează data"
+                              variant="outlined"
+                              density="comfortable"
+                              readonly
+                              hide-details
+                              class="profile-field birth-date-field"
+                              append-inner-icon="mdi-calendar-month-outline"
+                            />
+                          </template>
 
                           <div class="birth-date-menu-card">
                             <v-date-picker
@@ -976,7 +980,7 @@
                   class="invoice-classic-status"
                   :class="`status-${selectedInvoiceOrder.payment_status} `"
                 >
-                   {{ formatPaymentStatusInvoice(selectedInvoiceOrder.payment_status) }}
+                  {{ formatPaymentStatusInvoice(selectedInvoiceOrder.payment_status) }}
                 </span>
               </div>
             </div>
@@ -1122,17 +1126,71 @@ const showBeneficiariesList = ref(false)
 
 const menuDate = ref(false)
 
+function toDateOnlyString(value) {
+  if (!value) return ''
+
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value
+  }
+
+  const date = value instanceof Date ? value : new Date(value)
+
+  if (Number.isNaN(date.getTime())) return ''
+
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+function parseLocalDate(value) {
+  if (!value) return null
+
+  if (value instanceof Date) {
+    return new Date(value.getFullYear(), value.getMonth(), value.getDate())
+  }
+
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [year, month, day] = value.split('-').map(Number)
+    return new Date(year, month - 1, day)
+  }
+
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) return null
+
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+}
+
+function formatLocalDateRo(value, options = {}) {
+  const date = parseLocalDate(value)
+  if (!date) return ''
+
+  return date.toLocaleDateString('ro-RO', options)
+}
+
 const formattedEventDate = computed(() => {
-  if (!eventForm.event_date) return ''
-
-  const d = new Date(eventForm.event_date)
-
-  const day = String(d.getDate()).padStart(2, '0')
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const year = d.getFullYear()
-
-  return `${day}.${month}.${year}`
+  return formatLocalDateRo(eventForm.event_date)
 })
+
+function formatBirthDate(value) {
+  return formatLocalDateRo(value)
+}
+
+const formatEventDatePick = (value) => {
+  return formatLocalDateRo(value)
+}
+
+function formatEventDate(value) {
+  return (
+    formatLocalDateRo(value, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }) || '-'
+  )
+}
 
 const invoiceTaxesAmount = computed(() => {
   if (!selectedInvoiceOrder.value) return 0
@@ -1536,11 +1594,11 @@ const initials = computed(() => {
     .join('')
 })
 
-function formatBirthDate(value) {
-  if (!value) return ''
-  const date = new Date(value)
-  return date.toLocaleDateString('ro-RO')
-}
+// function formatBirthDate(value) {
+//   if (!value) return ''
+//   const date = new Date(value)
+//   return date.toLocaleDateString('ro-RO')
+// }
 
 function syncProfileForm() {
   profileForm.username = profileStore.profile.username || ''
@@ -1577,16 +1635,16 @@ function parseColors(text) {
     .filter(Boolean)
 }
 
-const formatEventDatePick = (date) => {
-  if (!date) return ''
+// const formatEventDatePick = (date) => {
+//   if (!date) return ''
 
-  const d = new Date(date)
-  const day = String(d.getDate()).padStart(2, '0')
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const year = d.getFullYear()
+//   const d = new Date(date)
+//   const day = String(d.getDate()).padStart(2, '0')
+//   const month = String(d.getMonth() + 1).padStart(2, '0')
+//   const year = d.getFullYear()
 
-  return `${day}.${month}.${year}`
-}
+//   return `${day}.${month}.${year}`
+// }
 
 function formatBudget(min, max) {
   const hasMin = min !== null && min !== undefined && min !== ''
@@ -1677,16 +1735,16 @@ function handleQuizComplete(result) {
   beneficiaryForm.budget_max = result.budget_max ?? ''
 }
 
-function formatEventDate(value) {
-  if (!value) return '-'
+// function formatEventDate(value) {
+//   if (!value) return '-'
 
-  const date = new Date(value)
-  return date.toLocaleDateString('ro-RO', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-}
+//   const date = new Date(value)
+//   return date.toLocaleDateString('ro-RO', {
+//     day: 'numeric',
+//     month: 'long',
+//     year: 'numeric',
+//   })
+// }
 
 function eventTypeIcon(value) {
   const map = {
@@ -1803,7 +1861,7 @@ async function handleProfileSubmit() {
       username: profileForm.username,
       first_name: profileForm.first_name,
       last_name: profileForm.last_name,
-      birth_date: profileForm.birth_date || null,
+      birth_date: profileForm.birth_date ? toDateOnlyString(profileForm.birth_date) : null,
       address: profileForm.address,
     })
 
@@ -1863,7 +1921,7 @@ async function handleSaveEvent() {
   const payload = {
     beneficiary_id: eventForm.beneficiary_id,
     event_type: eventForm.event_type,
-    event_date: eventForm.event_date,
+    event_date: toDateOnlyString(eventForm.event_date),
     reminder_days_before:
       eventForm.reminder_days_before === '' || eventForm.reminder_days_before === null
         ? 4
