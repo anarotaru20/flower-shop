@@ -78,49 +78,42 @@
       </div>
     </section>
 
-<v-dialog v-model="quizResultsDialog" max-width="980">
-  <v-card class="quiz-results-dialog" elevation="0">
-    <v-card-title class="quiz-results-title">
-      Recomandări personalizate
-    </v-card-title>
+    <v-dialog v-model="quizResultsDialog" max-width="980">
+      <v-card class="quiz-results-dialog" elevation="0">
+        <v-card-title class="quiz-results-title"> Recomandări personalizate </v-card-title>
 
-    <v-card-text class="quiz-results-body">
-      <p class="quiz-results-subtitle">
-        Am ales câteva produse pe baza răspunsurilor tale.
-      </p>
+        <v-card-text class="quiz-results-body">
+          <p class="quiz-results-subtitle">Am ales câteva produse pe baza răspunsurilor tale.</p>
 
-      <div v-if="quizResults.length" class="quiz-results-grid">
-        <article
-          v-for="product in quizResults"
-          :key="product.id"
-          class="quiz-result-card"
-          @click="goToProduct(product.slug)"
-        >
-          <img :src="product.image_url" :alt="product.name" class="quiz-result-image" />
+          <div v-if="quizResults.length" class="quiz-results-list">
+            <article
+              v-for="product in quizResults"
+              :key="product.id"
+              class="quiz-result-row"
+              @click="goToProduct(product.slug)"
+            >
+              <img :src="product.image_url" :alt="product.name" class="quiz-result-image" />
 
-          <div class="quiz-result-content">
-            <h3>{{ product.name }}</h3>
-            <p class="quiz-result-price">{{ formatPrice(product.price) }}</p>
-            <button type="button" class="btn-text-link">
-              Vezi produsul —
-            </button>
+              <div class="quiz-result-content">
+                <span class="quiz-result-name">{{ product.name }}</span>
+                <p class="quiz-result-price">{{ formatPrice(product.price) }}</p>
+              </div>
+
+              <button type="button" class="btn-text-link">Vezi produs →</button>
+            </article>
           </div>
-        </article>
-      </div>
 
-      <div v-else class="quiz-empty">
-        Nu am găsit recomandări potrivite momentan.
-      </div>
-    </v-card-text>
+          <div v-else class="quiz-empty">Nu am găsit recomandări potrivite momentan.</div>
+        </v-card-text>
 
-    <v-card-actions class="quiz-results-actions">
-      <v-spacer />
-      <v-btn variant="text" @click="quizResultsDialog = false">
-        Închide
-      </v-btn>
-    </v-card-actions>
-  </v-card>
-</v-dialog>
+        <v-card-actions class="quiz-results-actions">
+          <v-spacer />
+          <v-btn class="close-btn" variant="text" @click="quizResultsDialog = false">
+            Închide
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <section class="products-showcase">
       <div class="container">
@@ -780,7 +773,8 @@ h3,
   font-size: 28px;
   font-family: 'Playfair Display', serif;
   padding: 24px 24px 8px;
-  color: #1a1715;
+  color: #b9364e;
+  font-weight: 600;
 }
 
 .quiz-results-body {
@@ -788,7 +782,7 @@ h3,
 }
 
 .quiz-results-subtitle {
-  color: #6b7280;
+  color: #4c3a32;
   margin-bottom: 22px;
   line-height: 1.6;
 }
@@ -796,7 +790,7 @@ h3,
 .quiz-results-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 15px;
 }
 
 .quiz-result-card {
@@ -804,6 +798,10 @@ h3,
   background: #fff;
   cursor: pointer;
   transition: 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 80%;
 }
 
 .quiz-result-card:hover {
@@ -813,14 +811,21 @@ h3,
 }
 
 .quiz-result-image {
-  width: 100%;
-  aspect-ratio: 1 / 1.15;
+  height: 100px;
+  width: 100px;
   object-fit: cover;
   display: block;
 }
 
 .quiz-result-content {
-  padding: 16px;
+  padding: 12px;
+  width: 100%;
+}
+
+.quiz-result-score {
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .quiz-result-content h3 {
@@ -831,6 +836,7 @@ h3,
 
 .quiz-result-price {
   font-size: 16px;
+  font-weight: 700;
   color: #1a1715;
   margin-bottom: 12px;
 }
@@ -842,6 +848,10 @@ h3,
   color: #c72c48;
   font-weight: 600;
   cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .quiz-results-actions {
@@ -851,6 +861,81 @@ h3,
 .quiz-empty {
   padding: 20px 0 8px;
   color: #6b7280;
+}
+
+.quiz-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 6px;
+  padding-top: 10px;
+}
+
+.quiz-result-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  border: 1px solid #eee;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  background: #fff;
+}
+
+.quiz-result-row:hover {
+  border-color: #c72c48;
+  transform: translateY(-2px);
+}
+.quiz-result-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  border: 1px solid #eee;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  background: #fff;
+}
+
+.quiz-result-row:hover {
+  border-color: #c72c48;
+  transform: translateY(-2px);
+}
+
+.quiz-result-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.quiz-result-name {
+  font-weight: 600;
+  color: #1a1a1a;
+
+  overflow-wrap: break-word;
+}
+
+.btn-text-link {
+  margin-left: auto;
+  color: #c72c48;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.close-btn {
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: 700;
+  color: #b9364e;
+  border: 1px solid #f3c4cd;
+  background: #fff1f4;
 }
 
 @media (max-width: 900px) {
