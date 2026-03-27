@@ -1,22 +1,23 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '@/views/HomeView.vue'
-import LoginView from '@/views/LoginView.vue'
-import RegisterView from '@/views/RegisterView.vue'
-import ForgotPasswordView from '@/views/ForgotPasswordView.vue'
-import ResetPasswordView from '@/views/ResetPasswordView.vue'
-import ProductsView from '@/views/ProductsView.vue'
-import ProductDetailView from '@/views/ProductDetailView.vue'
-import CartView from '@/views/CartView.vue'
-import CheckoutView from '@/views/CheckoutView.vue'
-import OrdersView from '@/views/OrdersView.vue'
-import ProfileView from '@/views/ProfileView.vue'
-import QrView from '@/views/QrView.vue'
-import AdminLayout from '@/components/layout/AdminLayout.vue'
-import AdminDashboardView from '@/views/admin/AdminDashboardView.vue'
-import AdminProductsView from '@/views/admin/AdminProductsView.vue'
-import AdminOrdersView from '@/views/admin/AdminOrdersView.vue'
-import AdminReportsView from '@/views/admin/AdminReportsView.vue'
-import AdminUsersView from '@/views/admin/AdminUsersView.vue'
+
+const HomeView = () => import('@/views/HomeView.vue')
+const LoginView = () => import('@/views/LoginView.vue')
+const RegisterView = () => import('@/views/RegisterView.vue')
+const ForgotPasswordView = () => import('@/views/ForgotPasswordView.vue')
+const ResetPasswordView = () => import('@/views/ResetPasswordView.vue')
+const ProductsView = () => import('@/views/ProductsView.vue')
+const ProductDetailView = () => import('@/views/ProductDetailView.vue')
+const CartView = () => import('@/views/CartView.vue')
+const CheckoutView = () => import('@/views/CheckoutView.vue')
+const OrdersView = () => import('@/views/OrdersView.vue')
+const ProfileView = () => import('@/views/ProfileView.vue')
+const QrView = () => import('@/views/QrView.vue')
+const AdminLayout = () => import('@/components/layout/AdminLayout.vue')
+const AdminDashboardView = () => import('@/views/admin/AdminDashboardView.vue')
+const AdminProductsView = () => import('@/views/admin/AdminProductsView.vue')
+const AdminOrdersView = () => import('@/views/admin/AdminOrdersView.vue')
+const AdminReportsView = () => import('@/views/admin/AdminReportsView.vue')
+const AdminUsersView = () => import('@/views/admin/AdminUsersView.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

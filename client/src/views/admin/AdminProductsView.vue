@@ -1,152 +1,284 @@
 <template>
   <div class="products-page">
     <div class="products-header">
-      <h1 class="text-h4 font-weight-bold">Produse</h1>
+      <div class="products-title-wrap">
+        <h1 class="text-h4 font-weight-bold page-title">Produse</h1>
+        <p class="page-subtitle">Administrează produsele din magazin rapid și clar.</p>
+      </div>
 
-      <v-btn color="primary" @click="openCreateDialog">
-        Adaugă produs
-      </v-btn>
+      <div class="products-toolbar">
+        <v-text-field
+          v-model="searchQuery"
+          placeholder="Caută după numele produsului..."
+          variant="outlined"
+          density="comfortable"
+          prepend-inner-icon="mdi-magnify"
+          hide-details
+          clearable
+          class="products-search"
+        />
+        <v-btn color="primary" class="add-product-btn" @click="openCreateDialog">
+          Adaugă produs
+        </v-btn>
+      </div>
     </div>
 
-    <v-alert
-      v-if="store.error"
-      type="error"
-      variant="tonal"
-      class="mb-4"
-    >
+    <v-alert v-if="store.error" type="error" variant="tonal" class="mb-4">
       {{ store.error }}
     </v-alert>
 
-    <v-card elevation="2" rounded="xl">
+    <v-card class="products-card" elevation="2">
+      <v-card-title class="font-weight-bold products-card-title">
+        Lista produse
+        <v-spacer />
+        <span class="products-count">{{ filteredProducts.length }} produse</span>
+      </v-card-title>
+
       <v-card-text>
-        <v-progress-circular
-          v-if="store.loading"
-          indeterminate
-        />
+        <div v-if="store.loading" class="loading-wrap">
+          <v-progress-circular indeterminate />
+        </div>
 
-        <v-table v-else>
-          <thead>
-            <tr>
-              <th>Nume</th>
-              <th>Preț</th>
-              <th>Categorie</th>
-              <th>Stoc</th>
-              <th>Acțiuni</th>
-            </tr>
-          </thead>
+        <template v-else>
+          <div class="desktop-table">
+            <v-table class="products-table">
+              <thead>
+                <tr>
+                  <th class="text-left font-weight-bold">Nume</th>
+                  <th class="text-right font-weight-bold">Preț</th>
+                  <th class="text-left font-weight-bold">Categorie</th>
+                  <th class="text-center font-weight-bold">
+                    <div class="stock-header">
+                      <span>Stoc</span>
 
-          <tbody>
-            <tr v-for="product in store.products" :key="product.id">
-              <td>{{ product.name }}</td>
-              <td>{{ formatPrice(product.price) }}</td>
-              <td>{{ product.categories?.name || '-' }}</td>
-              <td>
-                <v-chip
-                  :color="getStockColor(product.stock)"
-                  size="small"
-                  variant="flat"
-                >
-                  {{ product.stock ?? 0 }}
-                </v-chip>
-              </td>
-              <td>
-                <div class="actions-cell">
-                  <v-btn
-                    size="small"
-                    variant="text"
-                    @click="openEditDialog(product)"
-                  >
-                    Edit
-                  </v-btn>
+                      <v-btn icon size="x-small" variant="text" @click="toggleStockSort">
+                        <v-icon size="18">
+                          {{
+                            stockSort === 'asc'
+                              ? 'mdi-arrow-up'
+                              : stockSort === 'desc'
+                                ? 'mdi-arrow-down'
+                                : 'mdi-swap-vertical'
+                          }}
+                        </v-icon>
+                      </v-btn>
+                    </div>
+                  </th>
+                  <th class="text-center font-weight-bold">Acțiuni</th>
+                </tr>
+              </thead>
 
-                  <v-btn
-                    size="small"
-                    variant="text"
-                    color="red"
-                    @click="openDeleteDialog(product)"
-                  >
-                    Delete
-                  </v-btn>
+              <tbody>
+                <tr v-for="product in filteredProducts" :key="product.id">
+                  <td>
+                    <div class="product-name-cell">
+                      <div v-if="product.image_url" class="product-thumb">
+                        <img :src="product.image_url" :alt="product.name" />
+                      </div>
+                      <div v-else class="product-thumb placeholder">
+                        <v-icon size="18">mdi-image-outline</v-icon>
+                      </div>
+
+                      <div class="product-main-info">
+                        <span class="product-name">{{ product.name }}</span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td class="text-right product-price">{{ formatPrice(product.price) }}</td>
+                  <td>{{ product.categories?.name || '-' }}</td>
+                  <td class="text-center">
+                    <v-chip
+                      :color="getStockColor(product.stock)"
+                      size="small"
+                      variant="flat"
+                      class="stock-chip"
+                    >
+                      {{ product.stock ?? 0 }}
+                    </v-chip>
+                  </td>
+                  <td>
+                    <div class="actions-cell">
+                      <v-btn
+                        icon
+                        size="small"
+                        variant="text"
+                        color="primary"
+                        @click="openEditDialog(product)"
+                      >
+                        <v-icon>mdi-pencil-outline</v-icon>
+                      </v-btn>
+
+                      <v-btn
+                        icon
+                        size="small"
+                        variant="text"
+                        color="red"
+                        @click="openDeleteDialog(product)"
+                      >
+                        <v-icon>mdi-delete-outline</v-icon>
+                      </v-btn>
+                    </div>
+                  </td>
+                </tr>
+
+                <tr v-if="!filteredProducts.length">
+                  <td colspan="5" class="text-center py-6">
+                    Nu există produse care să corespundă căutării.
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+          </div>
+
+          <div class="mobile-products">
+            <div v-for="product in filteredProducts" :key="product.id" class="mobile-product-card">
+              <div class="mobile-product-top">
+                <div v-if="product.image_url" class="mobile-product-thumb">
+                  <img :src="product.image_url" :alt="product.name" />
                 </div>
-              </td>
-            </tr>
+                <div v-else class="mobile-product-thumb placeholder">
+                  <v-icon size="20">mdi-image-outline</v-icon>
+                </div>
 
-            <tr v-if="!store.products.length && !store.loading">
-              <td colspan="5" class="text-center py-4">
-                Nu există produse.
-              </td>
-            </tr>
-          </tbody>
-        </v-table>
+                <div class="mobile-product-main">
+                  <h3 class="mobile-product-name">{{ product.name }}</h3>
+                  <p class="mobile-product-category">
+                    {{ product.categories?.name || 'Fără categorie' }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="mobile-product-meta">
+                <div class="mobile-meta-box">
+                  <span class="mobile-meta-label">Preț</span>
+                  <span class="mobile-meta-value">{{ formatPrice(product.price) }}</span>
+                </div>
+
+                <div class="mobile-meta-box">
+                  <span class="mobile-meta-label">Stoc</span>
+                  <v-chip
+                    :color="getStockColor(product.stock)"
+                    size="small"
+                    variant="flat"
+                    class="stock-chip"
+                  >
+                    {{ product.stock ?? 0 }}
+                  </v-chip>
+                </div>
+              </div>
+
+              <div class="mobile-actions">
+                <v-btn
+                  icon
+                  size="small"
+                  variant="text"
+                  color="primary"
+                  @click="openEditDialog(product)"
+                >
+                  <v-icon>mdi-pencil-outline</v-icon>
+                </v-btn>
+
+                <v-btn
+                  icon
+                  size="small"
+                  variant="text"
+                  color="red"
+                  @click="openDeleteDialog(product)"
+                >
+                  <v-icon>mdi-delete-outline</v-icon>
+                </v-btn>
+              </div>
+            </div>
+
+            <div v-if="!filteredProducts.length" class="mobile-empty-state">
+              Nu există produse care să corespundă căutării.
+            </div>
+          </div>
+        </template>
       </v-card-text>
     </v-card>
 
-    <v-dialog v-model="productDialog" max-width="700">
-      <v-card rounded="xl">
-        <v-card-title class="font-weight-bold">
+    <v-dialog v-model="productDialog" max-width="760">
+      <v-card class="dialog-card" rounded="xl">
+        <v-card-title class="font-weight-bold dialog-title">
           {{ isEditMode ? 'Editează produs' : 'Adaugă produs' }}
         </v-card-title>
 
-        <v-card-text>
+        <v-card-text class="dialog-content">
           <v-row>
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.name"
-                label="Nume"
-                variant="outlined"
-              />
+            <v-col cols="12">
+              <label class="profile-input-label" for="profile-first-name">Nume</label>
+              <v-text-field v-model="form.name" variant="outlined" density="comfortable" />
             </v-col>
 
             <v-col cols="12" md="6">
+              <label class="profile-input-label" for="profile-first-name">Preț</label>
               <v-text-field
                 v-model.number="form.price"
-                label="Preț"
                 type="number"
                 variant="outlined"
+                density="comfortable"
               />
             </v-col>
 
             <v-col cols="12" md="6">
+              <label class="profile-input-label" for="profile-first-name">Stoc</label>
               <v-text-field
                 v-model.number="form.stock"
-                label="Stoc"
                 type="number"
                 variant="outlined"
-              />
-            </v-col>
-
-            <v-col cols="12" md="6">
-              <v-text-field
-                v-model="form.category_id"
-                label="Category ID"
-                variant="outlined"
+                density="comfortable"
               />
             </v-col>
 
             <v-col cols="12">
-              <v-text-field
-                v-model="form.image_url"
-                label="Imagine URL"
-                variant="outlined"
-              />
+              <v-row align="center" class="image-row">
+                <v-col cols="12" md="9">
+                  <label class="profile-input-label" for="profile-first-name">Imagine URL</label>
+                  <v-text-field v-model="form.image_url" variant="outlined" density="comfortable" />
+                </v-col>
+
+                <v-col cols="12" md="3" class="d-flex justify-center">
+                  <div class="image-preview-box" v-if="form.image_url">
+                    <img
+                      :src="form.image_url"
+                      alt="Preview produs"
+                      class="image-preview"
+                      @error="handleImageError"
+                    />
+                  </div>
+
+                  <div v-else class="image-preview-placeholder">
+                    <v-icon size="20">mdi-image-outline</v-icon>
+                  </div>
+                </v-col>
+              </v-row>
             </v-col>
 
             <v-col cols="12">
+              <label class="profile-input-label" for="profile-first-name">Descriere</label>
               <v-textarea
                 v-model="form.description"
-                label="Descriere"
                 variant="outlined"
-                rows="4"
+                rows="3"
+              />
+            </v-col>
+
+            <v-col cols="12">
+              <label class="profile-input-label" for="profile-first-name">Instrucțiuni de îngrijire</label>
+              <v-textarea
+                v-model="form.care_instructions"
+                variant="outlined"
+                rows="3"
               />
             </v-col>
           </v-row>
         </v-card-text>
 
-        <v-card-actions>
+        <v-card-actions class="dialog-actions">
           <v-spacer />
-          <v-btn variant="text" @click="closeProductDialog">
-            Anulează
-          </v-btn>
+          <v-btn variant="text" @click="closeProductDialog"> Anulează </v-btn>
           <v-btn color="primary" :loading="store.loading" @click="submitProduct">
             {{ isEditMode ? 'Salvează' : 'Creează' }}
           </v-btn>
@@ -155,24 +287,19 @@
     </v-dialog>
 
     <v-dialog v-model="deleteDialog" max-width="500">
-      <v-card rounded="xl">
-        <v-card-title class="font-weight-bold">
-          Confirmare ștergere
-        </v-card-title>
+      <v-card class="dialog-card" rounded="xl">
+        <v-card-title class="font-weight-bold dialog-title"> Confirmare ștergere </v-card-title>
 
-        <v-card-text>
+        <v-card-text class="delete-text">
           Sigur vrei să ștergi produsul
-          <strong>{{ productToDelete?.name || '-' }}</strong>?
+          <strong>{{ productToDelete?.name || '-' }}</strong
+          >?
         </v-card-text>
 
-        <v-card-actions>
+        <v-card-actions class="dialog-actions">
           <v-spacer />
-          <v-btn variant="text" @click="closeDeleteDialog">
-            Anulează
-          </v-btn>
-          <v-btn color="red" :loading="store.loading" @click="confirmDelete">
-            Șterge
-          </v-btn>
+          <v-btn variant="text" @click="closeDeleteDialog"> Anulează </v-btn>
+          <v-btn color="red" :loading="store.loading" @click="confirmDelete"> Șterge </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -180,27 +307,63 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useAdminProductsStore } from '@/stores/adminProducts'
 
 const store = useAdminProductsStore()
 
+const searchQuery = ref('')
 const productDialog = ref(false)
 const deleteDialog = ref(false)
 const isEditMode = ref(false)
 const editingProductId = ref(null)
 const productToDelete = ref(null)
 
+const stockSort = ref(null)
+
+function toggleStockSort() {
+  if (stockSort.value === null) {
+    stockSort.value = 'asc'
+  } else if (stockSort.value === 'asc') {
+    stockSort.value = 'desc'
+  } else {
+    stockSort.value = null
+  }
+}
+
+function handleImageError(event) {
+  event.target.style.display = 'none'
+}
+
 const initialForm = () => ({
   name: '',
   price: 0,
   stock: 0,
   description: '',
+  care_instructions: '',
   image_url: '',
   category_id: '',
 })
 
 const form = ref(initialForm())
+
+const filteredProducts = computed(() => {
+  let list = [...(store.products || [])]
+
+  const query = searchQuery.value.trim().toLowerCase()
+
+  if (query) {
+    list = list.filter((product) => (product.name || '').toLowerCase().includes(query))
+  }
+
+  if (stockSort.value === 'asc') {
+    list.sort((a, b) => (a.stock || 0) - (b.stock || 0))
+  } else if (stockSort.value === 'desc') {
+    list.sort((a, b) => (b.stock || 0) - (a.stock || 0))
+  }
+
+  return list
+})
 
 function formatPrice(value) {
   return `${Number(value || 0).toFixed(2)} lei`
@@ -231,6 +394,7 @@ function openEditDialog(product) {
     price: Number(product.price || 0),
     stock: Number(product.stock || 0),
     description: product.description || '',
+    care_instructions: product.care_instructions || '',
     image_url: product.image_url || '',
     category_id: product.category_id || '',
   }
@@ -248,6 +412,7 @@ async function submitProduct() {
     price: Number(form.value.price || 0),
     stock: Number(form.value.stock || 0),
     description: form.value.description,
+    care_instructions: form.value.care_instructions,
     image_url: form.value.image_url,
     category_id: form.value.category_id || null,
   }
@@ -292,19 +457,435 @@ onMounted(() => {
 .products-page {
   max-width: 1400px;
   margin: 0 auto;
+  padding: 8px;
 }
 
 .products-header {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 16px;
+  gap: 20px;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.products-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.page-title {
+  color: #1f2937;
+}
+
+.page-subtitle {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.products-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.products-search {
+  min-width: 320px;
+  max-width: 380px;
+}
+
+.add-product-btn {
+  height: 48px;
+  border-radius: 10px;
+  text-transform: none;
+  font-weight: 700;
+  padding-inline: 18px;
+  background: #b9364e;
+  color: white;
+}
+
+.products-card {
+  border-radius: 24px;
+  border: 1px solid #f1e6e1;
+  box-shadow: 0 12px 30px rgba(76, 58, 50, 0.08) !important;
+  overflow: hidden;
+}
+
+.products-card-title {
+  padding: 22px 24px 10px;
+  color: #1f2937;
+}
+
+.products-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.loading-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 36px 0;
+}
+
+.desktop-table {
+  display: block;
+}
+
+.mobile-products {
+  display: none;
+}
+
+:deep(.products-table) {
+  background: transparent;
+}
+
+:deep(.products-table .v-table__wrapper) {
+  overflow-x: auto;
+}
+
+:deep(.products-table thead th) {
+  color: #374151;
+  font-size: 14px;
+  font-weight: 800 !important;
+  white-space: nowrap;
+}
+
+:deep(.products-table tbody td) {
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+  color: #111827;
+  vertical-align: middle;
+}
+
+:deep(.products-table tbody tr) {
+  transition: background 0.2s ease;
+}
+
+:deep(.products-table tbody tr:hover) {
+  background: #fcfcfc;
+}
+
+.product-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 240px;
+}
+
+.product-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f8f1ec;
+  border: 1px solid #f1e6e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.product-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-thumb.placeholder {
+  color: #9ca3af;
+}
+
+.product-main-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.product-name {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.product-price {
+  font-weight: 700;
+  color: #1f2937;
+  white-space: nowrap;
+}
+
+.stock-chip {
+  min-width: 52px;
+  justify-content: center;
+  font-weight: 700;
 }
 
 .actions-cell {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+}
+
+.dialog-card {
+  border-radius: 24px;
+}
+
+.dialog-title {
+  padding: 22px 24px 10px;
+  color: #1f2937;
+}
+
+.dialog-content {
+  padding-top: 10px;
+}
+
+.dialog-actions {
+  padding: 16px 24px 20px;
+}
+
+.delete-text {
+  font-size: 15px;
+  color: #374151;
+}
+
+.mobile-product-card {
+  border: 1px solid #f1e6e1;
+  border-radius: 20px;
+  padding: 16px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(76, 58, 50, 0.06);
+}
+
+.mobile-product-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-product-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f8f1ec;
+  border: 1px solid #f1e6e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mobile-product-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mobile-product-thumb.placeholder {
+  color: #9ca3af;
+}
+
+.mobile-product-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.mobile-product-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: #1f2937;
+  word-break: break-word;
+}
+
+.mobile-product-category {
+  margin: 4px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.mobile-product-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.mobile-meta-box {
+  background: #fcfaf8;
+  border: 1px solid #f1e6e1;
+  border-radius: 16px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mobile-meta-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.mobile-meta-value {
+  font-size: 14px;
+  font-weight: 800;
+  color: #1f2937;
+}
+
+.mobile-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f3ebe7;
+}
+
+.mobile-empty-state {
+  text-align: center;
+  padding: 24px 16px;
+  color: #6b7280;
+  border: 1px dashed #e7d7cf;
+  border-radius: 18px;
+}
+
+.stock-header {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.image-preview-wrap {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.image-preview-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.image-preview-box {
+  width: 110px;
+  height: 110px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #f1e6e1;
+  background: #fcfaf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-input-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #574741;
+}
+:deep(.textarea-scroll textarea) {
+  max-height: 120px;
+  overflow-y: auto;
+}
+@media (max-width: 960px) {
+  .products-page {
+    padding: 4px;
+  }
+
+  .products-header {
+    align-items: stretch;
+  }
+
+  .products-toolbar {
+    width: 100%;
+  }
+
+  .products-search {
+    min-width: 0;
+    max-width: none;
+    flex: 1;
+  }
+
+  .add-product-btn {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .desktop-table {
+    display: none;
+  }
+
+  .mobile-products {
+    display: grid;
+    gap: 14px;
+  }
+
+  .products-card-title {
+    padding: 18px 18px 8px;
+  }
+
+  .page-title {
+    font-size: 28px !important;
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 600px) {
+  .products-page {
+    padding: 0;
+  }
+
+  .products-header {
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .products-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .products-search {
+    width: 100%;
+  }
+
+  .add-product-btn {
+    width: 100%;
+  }
+
+  .products-card {
+    border-radius: 20px;
+  }
+
+  .mobile-product-card {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .mobile-product-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .dialog-title {
+    font-size: 18px;
+  }
 }
 </style>
