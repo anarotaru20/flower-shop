@@ -5,19 +5,14 @@
       <p class="reports-subtitle">Evoluția comenzilor și a veniturilor pe luni</p>
     </div>
 
-    <v-alert
-      v-if="store.error"
-      type="error"
-      variant="tonal"
-      class="mb-4"
-    >
+    <v-alert v-if="store.error" type="error" variant="tonal" class="mb-4">
       {{ store.error }}
     </v-alert>
 
     <v-row>
       <v-col cols="12" md="6">
-        <v-card class="report-card" elevation="2">
-          <v-card-title class="font-weight-bold">
+        <v-card class="report-card pa-2 pa-md-4" elevation="2">
+          <v-card-title class="font-weight-bold table-text">
             Comenzi pe luni
           </v-card-title>
 
@@ -34,8 +29,8 @@
       </v-col>
 
       <v-col cols="12" md="6">
-        <v-card class="report-card" elevation="2">
-          <v-card-title class="font-weight-bold">
+        <v-card class="report-card pa-2 pa-md-4" elevation="2">
+          <v-card-title class="font-weight-bold table-text">
             Venit pe luni
           </v-card-title>
 
@@ -73,11 +68,10 @@ onMounted(() => {
 }
 
 .reports-header {
-  margin-bottom: 24px;
+  margin-bottom: 25px;
 }
 
 .reports-subtitle {
-  margin-top: 8px;
   color: #6b7280;
 }
 
@@ -87,5 +81,45 @@ onMounted(() => {
 
 .chart-box {
   height: 320px;
+}
+
+.table-text {
+  margin-top: 15px;
+  margin-left: 10px;
+  font-size: 25px;
+  color: #1f2937;
+}
+
+/* 🔥 MOBILE */
+@media (max-width: 768px) {
+  .reports-page {
+    padding: 0 12px;
+  }
+
+  .reports-header h1 {
+    font-size: 22px;
+  }
+
+  .reports-subtitle {
+    font-size: 13px;
+  }
+
+  .report-card {
+    border-radius: 16px;
+  }
+
+  .table-text {
+    font-size: 18px;
+    margin-top: 10px;
+    margin-left: 8px;
+  }
+
+  .chart-box {
+    height: 220px;
+  }
+
+  .v-card-text {
+    padding: 8px !important;
+  }
 }
 </style>
