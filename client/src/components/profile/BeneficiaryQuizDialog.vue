@@ -1,17 +1,15 @@
 <template>
   <v-dialog v-model="model" max-width="680">
     <v-card class="quiz-card" elevation="0">
-      <v-card-title class="quiz-title">
-        Quick beneficiary quiz
-      </v-card-title>
+      <v-card-title class="quiz-title"> Quiz pentru preferințele persoanei</v-card-title>
 
       <v-card-text class="quiz-body">
         <div class="quiz-progress">
-          <div class="quiz-step">Step {{ step.value }} of 4</div>
-          <div class="quiz-question">{{ currentQuestion }}</div>
           <div class="quiz-subtitle">
-            Choose the option that fits best. We’ll fill the form for you.
+            Alege varianta care se potrivește cel mai bine.
           </div>
+          <div class="quiz-step">Pasul {{ step.value }} din 4</div>
+          <div class="quiz-question">{{ currentQuestion }}</div>
         </div>
 
         <div class="quiz-options">
@@ -28,26 +26,18 @@
         </div>
 
         <div v-if="step === 4" class="quiz-budget-note">
-          We’ll use a suggested budget range based on the selected preference.
+          Vom folosi un interval de buget sugerat pe baza preferinței selectate.
         </div>
 
         <div class="quiz-actions">
-          <v-btn variant="text" :disabled="step === 1" @click="goBack">
-            Back
-          </v-btn>
+          <v-btn class="quiz-btn" variant="text" :disabled="step === 1" @click="goBack"> Înapoi </v-btn>
 
           <v-spacer />
 
-          <v-btn variant="text" @click="closeDialog">
-            Cancel
-          </v-btn>
+          <v-btn  variant="text" @click="closeDialog"> Anulează </v-btn>
 
-          <v-btn
-            class="finish-btn"
-            :disabled="!canContinue"
-            @click="goNext"
-          >
-            {{ step === 4 ? 'Finish quiz' : 'Next' }}
+          <v-btn class="finish-btn" :disabled="!canContinue" @click="goNext">
+            {{ step === 4 ? 'Finalizează quiz-ul' : 'Următorul' }}
           </v-btn>
         </div>
       </v-card-text>
@@ -84,37 +74,38 @@ const answers = reactive({
 })
 
 const colorOptions = [
-  { label: 'Romantic tones (pink, white, lilac)', value: ['roz', 'alb', 'lila'] },
-  { label: 'Warm tones (red, orange, yellow)', value: ['rosu', 'portocaliu', 'galben'] },
-  { label: 'Natural green vibe', value: ['verde'] },
-  { label: 'Elegant neutrals (white, cream)', value: ['alb', 'crem'] },
+  { label: 'roz, alb, lila', value: ['roz', 'alb', 'lila'] },
+  { label: 'roșu, portocaliu, galben', value: ['rosu', 'portocaliu', 'galben'] },
+  { label: 'verde', value: ['verde'] },
+  { label: 'alb, crem', value: ['alb', 'crem'] },
 ]
 
 const styleOptions = [
-  { label: 'Elegant', value: 'elegant' },
-  { label: 'Cute & playful', value: 'jucaus' },
-  { label: 'Minimalist', value: 'minimalist' },
-  { label: 'Luxurious', value: 'luxury' },
+  { label: 'Elegant', value: 'Elegant' },
+  { label: 'Jucăuș', value: 'JuJucăuș' },
+  { label: 'Minimalist', value: 'Minimalist' },
+  { label: 'Luxos', value: 'Luxos' },
 ]
 
 const typeOptions = [
-  { label: 'Bouquet', value: 'buchet' },
-  { label: 'Potted plant', value: 'planta' },
-  { label: 'Flower box', value: 'flower box' },
-  { label: 'Mixed surprise gift', value: 'cadou floral' },
+  { label: 'Buchet', value: 'Buchet' },
+  { label: 'Plantă la ghiveci', value: 'Planta' },
+  { label: 'Aranjament floral', value: 'Aranjament floral' },
+  { label: 'Plantă de exterior', value: 'Plantă de exterior' },
 ]
 
 const budgetOptions = [
-  { label: 'Small budget (30 - 70 RON)', value: 'small' },
-  { label: 'Medium budget (70 - 150 RON)', value: 'medium' },
-  { label: 'Premium budget (150 - 300 RON)', value: 'premium' },
+  { label: '30 - 70 lei', value: 'small' },
+  { label: '70 - 150 lei', value: 'medium' },
+  { label: '150 - 200 lei', value: 'premium' },
+  { label: '200 - 350 lei', value: 'extra-premium' },
 ]
 
 const currentQuestion = computed(() => {
-  if (step.value === 1) return 'What colors fit this person best?'
-  if (step.value === 2) return 'What style would they prefer?'
-  if (step.value === 3) return 'What type of product would they enjoy most?'
-  return 'What budget feels right for this beneficiary?'
+  if (step.value === 1) return 'Ce culori se potrivesc cel mai bine acestei persoane?'
+  if (step.value === 2) return 'Ce stil ar prefera?'
+  if (step.value === 3) return 'Ce tip de produs i-ar plăcea cel mai mult?'
+  return 'Ce buget ți se pare potrivit pentru acest beneficiar?'
 })
 
 const currentOptions = computed(() => {
@@ -169,7 +160,8 @@ function handleSelect(value) {
 function getBudgetRange(key) {
   if (key === 'small') return { budget_min: 30, budget_max: 70 }
   if (key === 'medium') return { budget_min: 70, budget_max: 150 }
-  return { budget_min: 150, budget_max: 300 }
+  if (key === 'premium') return { budget_min: 150, budget_max: 200 }
+  return { budget_min: 200, budget_max: 350 }
 }
 
 function resetQuiz() {
@@ -217,7 +209,7 @@ watch(
     if (value) {
       resetQuiz()
     }
-  }
+  },
 )
 </script>
 
@@ -228,10 +220,17 @@ watch(
 }
 
 .quiz-title {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
-  color: #1f2937;
+  color: #b9364e;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
   padding: 22px 24px 10px;
+  border-bottom: 2px solid #f1e6e1;
+  margin: 20px;
 }
 
 .quiz-body {
@@ -261,6 +260,7 @@ watch(
 .quiz-subtitle {
   color: #6b7280;
   line-height: 1.6;
+  padding-bottom: 15px;
 }
 
 .quiz-options {
@@ -307,10 +307,19 @@ watch(
   margin-top: 24px;
 }
 
+.quiz-btn {
+  font-weight: 700;
+  color: #b9364e;
+  border: 1px solid #f3c4cd;
+  background: #fff1f4;
+}
 .finish-btn {
-  border-radius: 999px;
+  border-radius: 10px;
   text-transform: none;
   font-weight: 600;
+  font-weight: 600;
+  background: #b9364e;
+  color: white;
 }
 
 @media (max-width: 640px) {

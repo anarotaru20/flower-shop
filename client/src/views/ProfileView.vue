@@ -665,7 +665,7 @@
                     <h4>Nu știi ce să completezi?</h4>
                     <p>
                       Te ajutăm cu câteva întrebări rapide și îți sugerăm automat preferințele
-                      beneficiarului.
+                      persoanei.
                     </p>
                   </div>
 

@@ -78,26 +78,49 @@
       </div>
     </section>
 
-    <section v-if="quizResults.length" class="quiz-results-section">
-      <div class="container">
-        <div class="section-head">
-          <span class="section-label">Selecția Ta</span>
-          <h2>Recomandări personalizate</h2>
-        </div>
-        <div class="quiz-results-grid">
-          <article v-for="product in quizResults" :key="product.id" class="quiz-result-card">
-            <img :src="product.image_url" :alt="product.name" class="quiz-result-image" />
-            <div class="quiz-result-content">
-              <h3>{{ product.name }}</h3>
-              <p class="quiz-result-price">{{ formatPrice(product.price) }}</p>
-              <RouterLink :to="`/products/${product.slug}`" class="btn-text-link"
-                >Detalii Produs —</RouterLink
-              >
-            </div>
-          </article>
-        </div>
+<v-dialog v-model="quizResultsDialog" max-width="980">
+  <v-card class="quiz-results-dialog" elevation="0">
+    <v-card-title class="quiz-results-title">
+      Recomandări personalizate
+    </v-card-title>
+
+    <v-card-text class="quiz-results-body">
+      <p class="quiz-results-subtitle">
+        Am ales câteva produse pe baza răspunsurilor tale.
+      </p>
+
+      <div v-if="quizResults.length" class="quiz-results-grid">
+        <article
+          v-for="product in quizResults"
+          :key="product.id"
+          class="quiz-result-card"
+          @click="goToProduct(product.slug)"
+        >
+          <img :src="product.image_url" :alt="product.name" class="quiz-result-image" />
+
+          <div class="quiz-result-content">
+            <h3>{{ product.name }}</h3>
+            <p class="quiz-result-price">{{ formatPrice(product.price) }}</p>
+            <button type="button" class="btn-text-link">
+              Vezi produsul —
+            </button>
+          </div>
+        </article>
       </div>
-    </section>
+
+      <div v-else class="quiz-empty">
+        Nu am găsit recomandări potrivite momentan.
+      </div>
+    </v-card-text>
+
+    <v-card-actions class="quiz-results-actions">
+      <v-spacer />
+      <v-btn variant="text" @click="quizResultsDialog = false">
+        Închide
+      </v-btn>
+    </v-card-actions>
+  </v-card>
+</v-dialog>
 
     <section class="products-showcase">
       <div class="container">
@@ -205,11 +228,14 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import HomeQuizDialog from '@/components/home/HomeQuizDialog.vue'
 import { useProductsStore } from '@/stores/products'
 
+const router = useRouter()
 const productsStore = useProductsStore()
 const quizDialog = ref(false)
+const quizResultsDialog = ref(false)
 const quizResults = ref([])
 const carouselTrack = ref(null)
 
@@ -222,40 +248,101 @@ const featuredProducts = computed(() => {
 function formatPrice(value) {
   return `${Number(value || 0).toFixed(2)} Lei`
 }
+
 function normalizeText(value) {
   return String(value || '')
     .trim()
     .toLowerCase()
 }
-function includesAny(text, values) {
+
+function includesAny(text, values = []) {
   const normalizedText = normalizeText(text)
   return values.some((value) => normalizedText.includes(normalizeText(value)))
 }
 
 function scoreQuizProduct(product, result) {
   let score = 0
-  const searchableText = `${normalizeText(product.name)} ${normalizeText(product.description)}`
-  if (Number(product.stock || 0) > 0) score += 20
-  else score -= 1000
-  const price = Number(product.price || 0)
-  if (price >= Number(result.budget_min) && price <= Number(result.budget_max)) score += 30
+
+  const name = normalizeText(product.name)
+  const description = normalizeText(product.description)
+  const color = normalizeText(product.color)
+  const style = normalizeText(product.style)
+  const type = normalizeText(product.type)
+  const categoryName = normalizeText(product.categories?.name)
+  const categorySlug = normalizeText(product.categories?.slug)
+  const searchableText = `${name} ${description} ${color} ${style} ${type} ${categoryName} ${categorySlug}`
+
+  const productPrice = Number(product.price || 0)
+  const budgetMin = Number(result.budget_min || 0)
+  const budgetMax = Number(result.budget_max || 0)
+
+  if (Number(product.stock || 0) > 0) {
+    score += 25
+  } else {
+    score -= 1000
+  }
+
+  if (productPrice >= budgetMin && productPrice <= budgetMax) {
+    score += 35
+  } else if (productPrice >= budgetMin - 20 && productPrice <= budgetMax + 20) {
+    score += 15
+  }
+
+  if (result.preferred_colors?.length) {
+    if (includesAny(color, result.preferred_colors)) score += 35
+    else if (includesAny(searchableText, result.preferred_colors)) score += 20
+  }
+
+  if (result.preferred_style) {
+    if (style === normalizeText(result.preferred_style)) score += 30
+    else if (searchableText.includes(normalizeText(result.preferred_style))) score += 15
+  }
+
+  if (result.preferred_product_type) {
+    const preferredType = normalizeText(result.preferred_product_type)
+
+    if (type === preferredType) score += 40
+    else if (searchableText.includes(preferredType)) score += 20
+
+    if (preferredType === 'flower box' && searchableText.includes('box')) score += 20
+    if (preferredType === 'cadou floral' && searchableText.includes('cadou')) score += 20
+    if (
+      preferredType === 'planta' &&
+      (categorySlug.includes('plante') || categoryName.includes('plante'))
+    )
+      score += 20
+    if (
+      preferredType === 'buchet' &&
+      (categorySlug.includes('buchete') || categoryName.includes('buchete'))
+    )
+      score += 20
+  }
+
   return score
 }
 
 function handleQuizComplete(result) {
   const products = productsStore.products || []
+
   quizResults.value = products
     .map((product) => ({ ...product, score: scoreQuizProduct(product, result) }))
+    .filter((product) => product.score > 0)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 5)
+    .slice(0, 6)
+
+  quizResultsDialog.value = true
+}
+
+function goToProduct(slug) {
+  quizResultsDialog.value = false
+  router.push(`/products/${slug}`)
 }
 
 function scrollCarousel(direction) {
   if (!carouselTrack.value) return
 
-  // Folosim scrollLeft direct pentru precizie
   const container = carouselTrack.value
-  const scrollAmount = container.clientWidth * 0.85 // Puțin mai mult pentru o mișcare amplă
+  const scrollAmount = container.clientWidth * 0.85
 
   container.scrollBy({
     left: direction === 'right' ? scrollAmount : -scrollAmount,
@@ -278,7 +365,11 @@ onMounted(async () => {
   background: #fff;
 }
 
-h1, h2, h3, .product-title, .footer-logo {
+h1,
+h2,
+h3,
+.product-title,
+.footer-logo {
   font-family: 'Playfair Display', serif;
   font-weight: 400;
 }
@@ -328,7 +419,9 @@ h1, h2, h3, .product-title, .footer-logo {
 }
 
 /* HERO SECTION */
-.hero-elegant { padding: 30px 0 60px; }
+.hero-elegant {
+  padding: 30px 0 60px;
+}
 .hero-elegant-grid {
   display: grid;
   grid-template-columns: 1.4fr 0.6fr;
@@ -374,7 +467,11 @@ h1, h2, h3, .product-title, .footer-logo {
   font-weight: 300;
 }
 
-.hero-elegant-actions { display: flex; gap: 20px; margin-top: 40px; }
+.hero-elegant-actions {
+  display: flex;
+  gap: 20px;
+  margin-top: 40px;
+}
 
 .hero-footer-promos {
   display: flex;
@@ -389,10 +486,17 @@ h1, h2, h3, .product-title, .footer-logo {
   color: #c72c48;
   letter-spacing: 1px;
 }
-.mini-promo p { font-size: 14px; margin: 5px 0 0; font-weight: 500; }
+.mini-promo p {
+  font-size: 14px;
+  margin: 5px 0 0;
+  font-weight: 500;
+}
 
 /* SIDE CARDS */
-.hero-elegant-side { display: grid; gap: 20px; }
+.hero-elegant-side {
+  display: grid;
+  gap: 20px;
+}
 .hero-editorial-card {
   background: #1a1715;
   color: white;
@@ -400,8 +504,15 @@ h1, h2, h3, .product-title, .footer-logo {
   display: flex;
   align-items: center;
 }
-.hero-editorial-card h3 { font-size: 36px; line-height: 1.1; margin: 20px 0; }
-.hero-editorial-card p { opacity: 0.7; font-weight: 300; }
+.hero-editorial-card h3 {
+  font-size: 36px;
+  line-height: 1.1;
+  margin: 20px 0;
+}
+.hero-editorial-card p {
+  opacity: 0.7;
+  font-weight: 300;
+}
 
 .hero-quiz-card {
   background: #fff;
@@ -411,7 +522,9 @@ h1, h2, h3, .product-title, .footer-logo {
   cursor: pointer;
   transition: border-color 0.3s;
 }
-.hero-quiz-card:hover { border-color: #c72c48; }
+.hero-quiz-card:hover {
+  border-color: #c72c48;
+}
 
 .hero-quiz-link {
   display: block;
@@ -429,8 +542,14 @@ h1, h2, h3, .product-title, .footer-logo {
   padding: 50px 0;
   border-bottom: 1px solid #eee;
 }
-.hero-info-item { display: flex; align-items: center; padding: 0 40px; }
-.hero-info-item:not(:last-child) { border-right: 1px solid #eee; }
+.hero-info-item {
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
+}
+.hero-info-item:not(:last-child) {
+  border-right: 1px solid #eee;
+}
 .info-num {
   font-family: 'Playfair Display', serif;
   font-size: 42px;
@@ -439,8 +558,17 @@ h1, h2, h3, .product-title, .footer-logo {
 }
 
 /* CARUSEL PRODUSE - PERFORMANȚĂ MAXIMĂ */
-.products-showcase { padding: 100px 0; background: #fff; position: relative; }
-.section-head-row { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 50px; }
+.products-showcase {
+  padding: 100px 0;
+  background: #fff;
+  position: relative;
+}
+.section-head-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 50px;
+}
 .section-label {
   font-size: 12px;
   letter-spacing: 3px;
@@ -449,18 +577,28 @@ h1, h2, h3, .product-title, .footer-logo {
   margin-bottom: 15px;
   display: block;
 }
-.section-head h2 { font-size: 48px; margin: 0; }
+.section-head h2 {
+  font-size: 48px;
+  margin: 0;
+}
 .section-link {
   text-decoration: none;
   color: #1a1715;
   font-weight: 600;
   border-bottom: 1px solid #1a1715;
   padding-bottom: 5px;
-  transition: color 0.3s, border-color 0.3s;
+  transition:
+    color 0.3s,
+    border-color 0.3s;
 }
-.section-link:hover { color: #c72c48; border-color: #c72c48; }
+.section-link:hover {
+  color: #c72c48;
+  border-color: #c72c48;
+}
 
-.products-carousel-wrap { position: relative; }
+.products-carousel-wrap {
+  position: relative;
+}
 
 .products-carousel {
   display: grid;
@@ -475,7 +613,9 @@ h1, h2, h3, .product-title, .footer-logo {
   will-change: scroll-position; /* Optimizare scroll */
   -webkit-overflow-scrolling: touch;
 }
-.products-carousel::-webkit-scrollbar { display: none; }
+.products-carousel::-webkit-scrollbar {
+  display: none;
+}
 
 .product-card {
   scroll-snap-align: start;
@@ -496,10 +636,20 @@ h1, h2, h3, .product-title, .footer-logo {
   object-fit: cover;
   transition: transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
 }
-.product-card:hover .product-image { transform: scale(1.08); }
+.product-card:hover .product-image {
+  transform: scale(1.08);
+}
 
-.product-card-content { padding: 25px 0; }
-.product-category { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #999; margin-bottom: 10px; }
+.product-card-content {
+  padding: 25px 0;
+}
+.product-category {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #999;
+  margin-bottom: 10px;
+}
 .product-title {
   font-size: 22px;
   text-decoration: none;
@@ -508,8 +658,14 @@ h1, h2, h3, .product-title, .footer-logo {
   display: block;
   transition: color 0.3s;
 }
-.product-title:hover { color: #c72c48; }
-.product-price { font-size: 17px; font-weight: 300; color: #1a1715; }
+.product-title:hover {
+  color: #c72c48;
+}
+.product-price {
+  font-size: 17px;
+  font-weight: 300;
+  color: #1a1715;
+}
 
 /* BUTOANE CARUSEL */
 .carousel-floating {
@@ -530,9 +686,17 @@ h1, h2, h3, .product-title, .footer-logo {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   transition: all 0.3s;
 }
-.carousel-floating:hover { background: #c72c48; color: white; border-color: #c72c48; }
-.carousel-floating.left { left: -28px; }
-.carousel-floating.right { right: -28px; }
+.carousel-floating:hover {
+  background: #c72c48;
+  color: white;
+  border-color: #c72c48;
+}
+.carousel-floating.left {
+  left: -28px;
+}
+.carousel-floating.right {
+  right: -28px;
+}
 
 /* BENEFITS */
 .benefit-grid {
@@ -542,10 +706,22 @@ h1, h2, h3, .product-title, .footer-logo {
   padding: 100px 0;
   border-top: 1px solid #eee;
 }
-.benefit-item { text-align: center; }
-.icon-wrap { font-size: 32px; margin-bottom: 25px; }
-.benefit-item h3 { font-size: 24px; margin-bottom: 15px; }
-.benefit-item p { color: #666; line-height: 1.7; font-weight: 300; }
+.benefit-item {
+  text-align: center;
+}
+.icon-wrap {
+  font-size: 32px;
+  margin-bottom: 25px;
+}
+.benefit-item h3 {
+  font-size: 24px;
+  margin-bottom: 15px;
+}
+.benefit-item p {
+  color: #666;
+  line-height: 1.7;
+  font-weight: 300;
+}
 
 /* FOOTER */
 .home-footer {
@@ -555,11 +731,27 @@ h1, h2, h3, .product-title, .footer-logo {
   padding: 100px 0 60px;
   margin-top: 40px;
 }
-.footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 80px; }
-.footer-logo { font-size: 38px; margin-bottom: 30px; letter-spacing: -1px; }
-.brand-pink { color: #c72c48; } /* Noul roz vibrant */
-.brand-green { color: #a4b494; }
-.footer-brand p { color: #888; font-size: 15px; line-height: 1.8; }
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 80px;
+}
+.footer-logo {
+  font-size: 38px;
+  margin-bottom: 30px;
+  letter-spacing: -1px;
+}
+.brand-pink {
+  color: #c72c48;
+} /* Noul roz vibrant */
+.brand-green {
+  color: #a4b494;
+}
+.footer-brand p {
+  color: #888;
+  font-size: 15px;
+  line-height: 1.8;
+}
 .footer-column h4 {
   font-size: 13px;
   text-transform: uppercase;
@@ -567,7 +759,8 @@ h1, h2, h3, .product-title, .footer-logo {
   color: #c72c48;
   margin-bottom: 35px;
 }
-.footer-column a, .footer-column span {
+.footer-column a,
+.footer-column span {
   display: block;
   color: #aaa;
   text-decoration: none;
@@ -575,16 +768,119 @@ h1, h2, h3, .product-title, .footer-logo {
   font-size: 14px;
   transition: color 0.3s;
 }
-.footer-column a:hover { color: #fff; }
+.footer-column a:hover {
+  color: #fff;
+}
+.quiz-results-dialog {
+  border-radius: 28px;
+  overflow: hidden;
+}
 
+.quiz-results-title {
+  font-size: 28px;
+  font-family: 'Playfair Display', serif;
+  padding: 24px 24px 8px;
+  color: #1a1715;
+}
+
+.quiz-results-body {
+  padding-top: 0;
+}
+
+.quiz-results-subtitle {
+  color: #6b7280;
+  margin-bottom: 22px;
+  line-height: 1.6;
+}
+
+.quiz-results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.quiz-result-card {
+  border: 1px solid #eee;
+  background: #fff;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.quiz-result-card:hover {
+  transform: translateY(-4px);
+  border-color: #c72c48;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.08);
+}
+
+.quiz-result-image {
+  width: 100%;
+  aspect-ratio: 1 / 1.15;
+  object-fit: cover;
+  display: block;
+}
+
+.quiz-result-content {
+  padding: 16px;
+}
+
+.quiz-result-content h3 {
+  font-size: 22px;
+  margin: 0 0 10px;
+  color: #1a1715;
+}
+
+.quiz-result-price {
+  font-size: 16px;
+  color: #1a1715;
+  margin-bottom: 12px;
+}
+
+.btn-text-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: #c72c48;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quiz-results-actions {
+  padding: 0 20px 20px;
+}
+
+.quiz-empty {
+  padding: 20px 0 8px;
+  color: #6b7280;
+}
+
+@media (max-width: 900px) {
+  .quiz-results-grid {
+    grid-template-columns: 1fr;
+  }
+}
 /* RESPONSIVE */
 @media (max-width: 1200px) {
-  .products-carousel { grid-auto-columns: calc((100% - 50px) / 3); }
+  .products-carousel {
+    grid-auto-columns: calc((100% - 50px) / 3);
+  }
 }
 @media (max-width: 900px) {
-  .hero-elegant-grid, .footer-grid, .hero-info-strip, .benefit-grid { grid-template-columns: 1fr; gap: 40px; }
-  .products-carousel { grid-auto-columns: 85%; }
-  .carousel-floating { display: none; }
-  .hero-elegant-main { padding: 60px 30px; min-height: auto; }
+  .hero-elegant-grid,
+  .footer-grid,
+  .hero-info-strip,
+  .benefit-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .products-carousel {
+    grid-auto-columns: 85%;
+  }
+  .carousel-floating {
+    display: none;
+  }
+  .hero-elegant-main {
+    padding: 60px 30px;
+    min-height: auto;
+  }
 }
 </style>

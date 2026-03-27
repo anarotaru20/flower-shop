@@ -1,17 +1,15 @@
 <template>
   <v-dialog v-model="model" max-width="720">
     <v-card class="quiz-card" elevation="0">
-      <v-card-title class="quiz-title">
-        Bloomera Recommendation Quiz
-      </v-card-title>
+      <v-card-title class="quiz-title"> Recomandări personalizate</v-card-title>
 
       <v-card-text class="quiz-body">
         <div class="quiz-progress">
-          <div class="quiz-step">Step {{ step }} of 5</div>
-          <div class="quiz-question">{{ currentQuestion }}</div>
           <div class="quiz-subtitle">
-            Answer a few quick questions and we’ll suggest your best floral matches.
+            Răspunde la câteva întrebări rapide și îți vom sugera cele mai potrivite produse.
           </div>
+          <div class="quiz-step">Pasul {{ step }} din 5</div>
+          <div class="quiz-question">{{ currentQuestion }}</div>
         </div>
 
         <div class="quiz-options">
@@ -28,22 +26,16 @@
         </div>
 
         <div class="quiz-actions">
-          <v-btn variant="text" :disabled="step === 1" @click="goBack">
-            Back
+          <v-btn class="quiz-btn" variant="text" :disabled="step === 1" @click="goBack">
+            Înapoi
           </v-btn>
 
           <v-spacer />
 
-          <v-btn variant="text" @click="closeDialog">
-            Cancel
-          </v-btn>
+          <v-btn variant="text" @click="closeDialog"> Anulează </v-btn>
 
-          <v-btn
-            class="finish-btn"
-            :disabled="!canContinue"
-            @click="goNext"
-          >
-            {{ step === 5 ? 'See recommendations' : 'Next' }}
+          <v-btn class="finish-btn" :disabled="!canContinue" @click="goNext">
+            {{ step === 5 ? 'Vezi recomandările' : 'Următorul' }}
           </v-btn>
         </div>
       </v-card-text>
@@ -78,36 +70,35 @@ const state = reactive({
 })
 
 const eventOptions = [
-  { label: 'Birthday', value: 'birthday' },
-  { label: 'Anniversary', value: 'anniversary' },
-  { label: 'Just because', value: 'just because' },
-  { label: 'Special event', value: 'special event' },
-  { label: 'Sympathy', value: 'sympathy' },
+  { label: 'Zi de naștere', value: 'birthday' },
+  { label: 'Aniversare', value: 'anniversary' },
+  { label: 'Fără ocazie', value: 'just because' },
+  { label: 'Eveniment special', value: 'special event' },
 ]
 
 const styleOptions = [
   { label: 'Elegant', value: 'elegant' },
   { label: 'Romantic', value: 'romantic' },
   { label: 'Natural', value: 'natural' },
-  { label: 'Playful', value: 'playful' },
-  { label: 'Luxury', value: 'luxury' },
+  { label: 'Luxos', value: 'luxury' },
 ]
 
 const colorOptions = [
-  { label: 'Soft tones (pink, white, lilac)', value: ['roz', 'alb', 'lila'] },
-  { label: 'Vibrant tones (red, orange, yellow)', value: ['rosu', 'portocaliu', 'galben'] },
-  { label: 'Green / natural', value: ['verde'] },
-  { label: 'Neutral (white, cream)', value: ['alb', 'crem'] },
+  { label: 'roz, alb, lila', value: ['roz', 'alb', 'lila'] },
+  { label: 'roșu, portocaliu, galben', value: ['rosu', 'portocaliu', 'galben'] },
+  { label: 'verde / natural', value: ['verde'] },
+  { label: 'alb, crem', value: ['alb', 'crem'] },
 ]
 
 const typeOptions = [
-  { label: 'Bouquet', value: 'buchet' },
-  { label: 'Plant', value: 'planta' },
-  { label: 'Flower box', value: 'flower box' },
-  { label: 'Surprise gift', value: 'cadou floral' },
+  { label: 'Buchet', value: 'buchet' },
+  { label: 'Plantă', value: 'planta' },
+  { label: 'Aranjament floral', value: 'flower box' },
+  { label: 'Accesorii', value: 'accesorii' },
 ]
 
 const budgetOptions = [
+  { label: '5 - 30 RON', value: 'extra-small' },
   { label: '30 - 70 RON', value: 'small' },
   { label: '70 - 150 RON', value: 'medium' },
   { label: '150 - 300 RON', value: 'premium' },
@@ -116,11 +107,11 @@ const budgetOptions = [
 const step = computed(() => state.step)
 
 const currentQuestion = computed(() => {
-  if (state.step === 1) return 'What is the occasion?'
-  if (state.step === 2) return 'What vibe do you want to send?'
-  if (state.step === 3) return 'What colors do you prefer?'
-  if (state.step === 4) return 'What type of product do you want?'
-  return 'What budget do you have in mind?'
+  if (state.step === 1) return 'Care este ocazia?'
+  if (state.step === 2) return 'Ce vibe vrei să transmiți?'
+  if (state.step === 3) return 'Ce culori preferi?'
+  if (state.step === 4) return 'Ce tip de produs îți dorești?'
+  return 'Ce buget ai în minte?'
 })
 
 const currentOptions = computed(() => {
@@ -174,6 +165,7 @@ function handleSelect(value) {
 }
 
 function getBudgetRange(key) {
+  if (key === 'extra-small') return { budget_min: 5, budget_max: 30 }
   if (key === 'small') return { budget_min: 30, budget_max: 70 }
   if (key === 'medium') return { budget_min: 70, budget_max: 150 }
   return { budget_min: 150, budget_max: 300 }
@@ -226,7 +218,7 @@ watch(
     if (value) {
       resetQuiz()
     }
-  }
+  },
 )
 </script>
 
@@ -239,8 +231,15 @@ watch(
 .quiz-title {
   font-size: 24px;
   font-weight: 700;
-  color: #1f2937;
+  color: #b9364e;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
   padding: 22px 24px 10px;
+  border-bottom: 2px solid #f1e6e1;
+  margin: 20px;
 }
 
 .quiz-body {
@@ -258,6 +257,7 @@ watch(
   margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  padding-top: 20px;
 }
 
 .quiz-question {
@@ -309,11 +309,19 @@ watch(
   gap: 8px;
   margin-top: 24px;
 }
-
+.quiz-btn {
+  font-weight: 700;
+  color: #b9364e;
+  border: 1px solid #f3c4cd;
+  background: #fff1f4;
+}
 .finish-btn {
-  border-radius: 999px;
+  border-radius: 10px;
   text-transform: none;
   font-weight: 600;
+  font-weight: 600;
+  background: #b9364e;
+  color: white;
 }
 
 @media (max-width: 640px) {
