@@ -475,9 +475,22 @@ function closeProductDialog() {
   resetForm()
 }
 
+function generateSlug(text) {
+  return String(text || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
 async function submitProduct() {
   const payload = {
     name: form.value.name,
+    slug: generateSlug(form.value.name),
     price: Number(form.value.price || 0),
     stock: Number(form.value.stock || 0),
     description: form.value.description,
