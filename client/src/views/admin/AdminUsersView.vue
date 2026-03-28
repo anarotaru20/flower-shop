@@ -2,8 +2,7 @@
   <div class="users-page">
     <div class="users-header">
       <div class="users-title-wrap">
-        <h1 class="text-h4 font-weight-bold page-title">Users</h1>
-        <p class="page-subtitle">Administrare utilizatori și roluri rapid și clar.</p>
+        <h1 class="text-h4 font-weight-bold page-title">Utilizatori</h1>
       </div>
 
       <div class="users-toolbar">

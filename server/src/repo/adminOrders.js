@@ -31,7 +31,12 @@ async function getOrderById(id) {
       shipping_address,
       payment_method,
       status,
+      payment_status,
+      subtotal,
+      tax_amount,
       total,
+      invoice_number,
+      paid_at,
       created_at,
       order_items (
         id,

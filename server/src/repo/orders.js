@@ -50,7 +50,7 @@ async function createOrder(userId, payload) {
   });
 
   const tax_amount = Number((subtotal * taxRate).toFixed(2));
-const total = Number(payload.final_total ?? (subtotal + tax_amount))
+  const total = Number(payload.final_total ?? subtotal + tax_amount);
   const invoice_number = `INV-${Date.now()}`;
 
   const { data: order, error: orderError } = await supabase

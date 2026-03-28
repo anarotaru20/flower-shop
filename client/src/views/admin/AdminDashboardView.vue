@@ -80,13 +80,12 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useAdminDashboardStore } from '@/stores/adminDashboard'
-import LineChart from '@/components/admin/LineChart.vue'
 
 const store = useAdminDashboardStore()
 
 const orderStatusMap = {
   pending: 'În procesare',
-  confirmed: 'Plătită',
+  confirmed: 'Confirmată',
   paid: 'Plătită',
   delivered: 'Livrată',
   cancelled: 'Anulată',

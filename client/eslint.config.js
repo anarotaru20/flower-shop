@@ -19,12 +19,13 @@ export default defineConfig([
         ...globals.browser,
       },
     },
+    rules: {
+      'no-unused-vars': 'warn',
+    },
   },
 
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
-
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
-
   skipFormatting,
 ])

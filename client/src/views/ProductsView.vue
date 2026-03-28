@@ -260,14 +260,6 @@ const categories = computed(() => {
   return Array.from(map.values())
 })
 
-const types = [
-  { value: 'buchet', label: 'Buchet' },
-  { value: 'aranjament', label: 'Aranjament' },
-  { value: 'planta', label: 'Planta' },
-  { value: 'cadou', label: 'Cadou' },
-  { value: 'accesoriu', label: 'Accesoriu' },
-]
-
 const styles = [
   { value: 'romantic', label: 'Romantic' },
   { value: 'elegant', label: 'Elegant' },
@@ -442,7 +434,7 @@ onMounted(() => {
 <style scoped>
 .products-page {
   padding: 40px 0;
-  background: #fffaf7;
+  /* background: #fffaf7; */
   min-height: calc(100vh - 80px);
 }
 

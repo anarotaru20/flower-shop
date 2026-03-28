@@ -3,7 +3,6 @@
     <div class="products-header">
       <div class="products-title-wrap">
         <h1 class="text-h4 font-weight-bold page-title">Produse</h1>
-        <p class="page-subtitle">Administrează produsele din magazin rapid și clar.</p>
       </div>
 
       <div class="products-toolbar">
@@ -40,7 +39,7 @@
         </div>
 
         <template v-else>
-          <div class="desktop-table">
+          <div v-if="!isMobile" class="desktop-table">
             <v-table class="products-table">
               <thead>
                 <tr>
@@ -131,7 +130,7 @@
             </v-table>
           </div>
 
-          <div class="mobile-products">
+          <div v-else class="mobile-products">
             <div v-for="product in filteredProducts" :key="product.id" class="mobile-product-card">
               <div class="mobile-product-top">
                 <div v-if="product.image_url" class="mobile-product-thumb">
@@ -208,12 +207,12 @@
         <v-card-text class="dialog-content">
           <v-row>
             <v-col cols="12">
-              <label class="profile-input-label" for="profile-first-name">Nume</label>
+              <label class="profile-input-label">Nume</label>
               <v-text-field v-model="form.name" variant="outlined" density="comfortable" />
             </v-col>
 
             <v-col cols="12" md="6">
-              <label class="profile-input-label" for="profile-first-name">Preț</label>
+              <label class="profile-input-label">Preț</label>
               <v-text-field
                 v-model.number="form.price"
                 type="number"
@@ -223,7 +222,7 @@
             </v-col>
 
             <v-col cols="12" md="6">
-              <label class="profile-input-label" for="profile-first-name">Stoc</label>
+              <label class="profile-input-label">Stoc</label>
               <v-text-field
                 v-model.number="form.stock"
                 type="number"
@@ -233,9 +232,9 @@
             </v-col>
 
             <v-col cols="12">
-              <v-row align="center" class="image-row">
+              <v-row align="center">
                 <v-col cols="12" md="9">
-                  <label class="profile-input-label" for="profile-first-name">Imagine URL</label>
+                  <label class="profile-input-label">Imagine URL</label>
                   <v-text-field v-model="form.image_url" variant="outlined" density="comfortable" />
                 </v-col>
 
@@ -257,21 +256,13 @@
             </v-col>
 
             <v-col cols="12">
-              <label class="profile-input-label" for="profile-first-name">Descriere</label>
-              <v-textarea
-                v-model="form.description"
-                variant="outlined"
-                rows="3"
-              />
+              <label class="profile-input-label">Descriere</label>
+              <v-textarea v-model="form.description" variant="outlined" rows="3" />
             </v-col>
 
             <v-col cols="12">
-              <label class="profile-input-label" for="profile-first-name">Instrucțiuni de îngrijire</label>
-              <v-textarea
-                v-model="form.care_instructions"
-                variant="outlined"
-                rows="3"
-              />
+              <label class="profile-input-label">Instrucțiuni de îngrijire</label>
+              <v-textarea v-model="form.care_instructions" variant="outlined" rows="3" />
             </v-col>
           </v-row>
         </v-card-text>
@@ -308,7 +299,11 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useDisplay } from 'vuetify'
 import { useAdminProductsStore } from '@/stores/adminProducts'
+
+const { smAndDown } = useDisplay()
+const isMobile = computed(() => smAndDown.value)
 
 const store = useAdminProductsStore()
 
@@ -318,7 +313,6 @@ const deleteDialog = ref(false)
 const isEditMode = ref(false)
 const editingProductId = ref(null)
 const productToDelete = ref(null)
-
 const stockSort = ref(null)
 
 function toggleStockSort() {
@@ -349,7 +343,6 @@ const form = ref(initialForm())
 
 const filteredProducts = computed(() => {
   let list = [...(store.products || [])]
-
   const query = searchQuery.value.trim().toLowerCase()
 
   if (query) {
@@ -477,12 +470,6 @@ onMounted(() => {
 
 .page-title {
   color: #1f2937;
-}
-
-.page-subtitle {
-  margin: 0;
-  color: #6b7280;
-  font-size: 14px;
 }
 
 .products-toolbar {
@@ -760,19 +747,6 @@ onMounted(() => {
   gap: 4px;
 }
 
-.image-preview-wrap {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.image-preview-label {
-  font-size: 13px;
-  font-weight: 700;
-  color: #6b7280;
-}
-
 .image-preview-box {
   width: 110px;
   height: 110px;
@@ -797,10 +771,7 @@ onMounted(() => {
   font-weight: 600;
   color: #574741;
 }
-:deep(.textarea-scroll textarea) {
-  max-height: 120px;
-  overflow-y: auto;
-}
+
 @media (max-width: 960px) {
   .products-page {
     padding: 4px;
@@ -841,10 +812,6 @@ onMounted(() => {
 
   .page-title {
     font-size: 28px !important;
-  }
-
-  .page-subtitle {
-    font-size: 13px;
   }
 }
 
