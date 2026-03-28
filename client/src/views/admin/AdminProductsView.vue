@@ -265,6 +265,20 @@
             </v-col>
 
             <v-col cols="12">
+              <label class="profile-input-label">Categorie</label>
+              <v-select
+                v-model="form.category_id"
+                :items="categoriesStore.categories"
+                item-title="name"
+                item-value="id"
+                variant="outlined"
+                density="comfortable"
+                placeholder="Selectează categoria"
+                clearable
+              />
+            </v-col>
+
+            <v-col cols="12">
               <v-row align="center">
                 <v-col cols="12" md="9">
                   <label class="profile-input-label">Imagine URL</label>
@@ -333,7 +347,9 @@
 import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import { useAdminProductsStore } from '@/stores/adminProducts'
+import { useCategoriesStore } from '@/stores/categories'
 
+const categoriesStore = useCategoriesStore()
 const { smAndDown } = useDisplay()
 const isMobile = computed(() => smAndDown.value)
 
@@ -503,6 +519,7 @@ async function confirmDelete() {
 
 onMounted(() => {
   store.fetchProducts()
+  categoriesStore.fetchCategories()
 })
 </script>
 
