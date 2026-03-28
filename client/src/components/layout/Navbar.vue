@@ -66,7 +66,7 @@
                 {{ cart.cartCount }}
               </span>
             </div>
-            <span class="nav-label">Coș</span>
+            <span class="nav-label mobile-hide-label">Coș</span>
           </RouterLink>
 
           <template v-if="isAuthenticated">
@@ -74,21 +74,21 @@
               <div class="nav-icon-wrap">
                 <v-icon size="20">mdi-account-outline</v-icon>
               </div>
-              <span class="nav-label">Profil</span>
+              <span class="nav-label mobile-hide-label">Profil</span>
             </RouterLink>
 
             <RouterLink v-if="isAdmin" to="/admin" class="nav-item">
               <div class="nav-icon-wrap">
                 <v-icon size="20">mdi-shield-crown-outline</v-icon>
               </div>
-              <span class="nav-label">Admin</span>
+              <span class="nav-label mobile-hide-label">Admin</span>
             </RouterLink>
 
             <button class="nav-item logout-btn" @click="handleLogout">
               <div class="nav-icon-wrap">
                 <v-icon size="20">mdi-logout-variant</v-icon>
               </div>
-              <span class="nav-label">Logout</span>
+              <span class="nav-label mobile-hide-label">Logout</span>
             </button>
           </template>
 
@@ -97,7 +97,7 @@
               <div class="nav-icon-wrap">
                 <v-icon size="20">mdi-account-outline</v-icon>
               </div>
-              <span class="nav-label">Intra în cont</span>
+              <span class="nav-label mobile-hide-label">Intra în cont</span>
             </RouterLink>
           </template>
         </nav>
@@ -836,6 +836,25 @@ function handleLogout() {
     grid-column: 1 / -1;
     order: 3;
     margin-top: 6px;
+  }
+}
+@media (max-width: 768px) {
+  .nav-links {
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .nav-item {
+    min-width: 40px;
+  }
+
+  .mobile-hide-label {
+    display: none;
+  }
+
+  .nav-icon-wrap {
+    width: 36px;
+    height: 36px;
   }
 }
 </style>

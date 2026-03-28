@@ -7,7 +7,7 @@
 
       <div class="products-toolbar">
         <v-text-field
-          v-model="searchQuery"
+          v-model="searchInput"
           placeholder="Caută după numele produsului..."
           variant="outlined"
           density="comfortable"
@@ -68,11 +68,27 @@
               </thead>
 
               <tbody>
-                <tr v-for="product in filteredProducts" :key="product.id">
+                <tr
+                  v-for="product in filteredProducts"
+                  :key="product.id"
+                  v-memo="[
+                    product.id,
+                    product.name,
+                    product.price,
+                    product.stock,
+                    product.image_url,
+                    product.categories?.name,
+                  ]"
+                >
                   <td>
                     <div class="product-name-cell">
                       <div v-if="product.image_url" class="product-thumb">
-                        <img :src="product.image_url" :alt="product.name" />
+                        <img
+                          :src="getOptimizedImage(product.image_url, 100)"
+                          :alt="product.name"
+                          loading="lazy"
+                          decoding="async"
+                        />
                       </div>
                       <div v-else class="product-thumb placeholder">
                         <v-icon size="18">mdi-image-outline</v-icon>
@@ -131,10 +147,27 @@
           </div>
 
           <div v-else class="mobile-products">
-            <div v-for="product in filteredProducts" :key="product.id" class="mobile-product-card">
+            <div
+              v-for="product in filteredProducts"
+              :key="product.id"
+              class="mobile-product-card"
+              v-memo="[
+                product.id,
+                product.name,
+                product.price,
+                product.stock,
+                product.image_url,
+                product.categories?.name,
+              ]"
+            >
               <div class="mobile-product-top">
                 <div v-if="product.image_url" class="mobile-product-thumb">
-                  <img :src="product.image_url" :alt="product.name" />
+                  <img
+                    :src="getOptimizedImage(product.image_url, 120)"
+                    :alt="product.name"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </div>
                 <div v-else class="mobile-product-thumb placeholder">
                   <v-icon size="20">mdi-image-outline</v-icon>
@@ -241,10 +274,9 @@
                 <v-col cols="12" md="3" class="d-flex justify-center">
                   <div class="image-preview-box" v-if="form.image_url">
                     <img
-                      :src="form.image_url"
+                      :src="getOptimizedImage(form.image_url, 200)"
                       alt="Preview produs"
                       class="image-preview"
-                      @error="handleImageError"
                     />
                   </div>
 
@@ -298,7 +330,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { useDisplay } from 'vuetify'
 import { useAdminProductsStore } from '@/stores/adminProducts'
 
@@ -307,6 +339,7 @@ const isMobile = computed(() => smAndDown.value)
 
 const store = useAdminProductsStore()
 
+const searchInput = ref('')
 const searchQuery = ref('')
 const productDialog = ref(false)
 const deleteDialog = ref(false)
@@ -314,6 +347,37 @@ const isEditMode = ref(false)
 const editingProductId = ref(null)
 const productToDelete = ref(null)
 const stockSort = ref(null)
+
+let searchTimeout = null
+
+watch(
+  searchInput,
+  (value) => {
+    clearTimeout(searchTimeout)
+    searchTimeout = setTimeout(() => {
+      searchQuery.value = value
+    }, 180)
+  },
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  clearTimeout(searchTimeout)
+})
+
+function getOptimizedImage(url, width = 200) {
+  if (!url) return ''
+
+  if (url.includes('supabase')) {
+    return `${url}?width=${width}&quality=70`
+  }
+
+  if (url.includes('cloudinary')) {
+    return url.replace('/upload/', `/upload/w_${width},q_auto,f_auto/`)
+  }
+
+  return url
+}
 
 function toggleStockSort() {
   if (stockSort.value === null) {
@@ -323,10 +387,6 @@ function toggleStockSort() {
   } else {
     stockSort.value = null
   }
-}
-
-function handleImageError(event) {
-  event.target.style.display = 'none'
 }
 
 const initialForm = () => ({
@@ -342,7 +402,7 @@ const initialForm = () => ({
 const form = ref(initialForm())
 
 const filteredProducts = computed(() => {
-  let list = [...(store.products || [])]
+  let list = store.products ? [...store.products] : []
   const query = searchQuery.value.trim().toLowerCase()
 
   if (query) {
@@ -574,12 +634,14 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  contain: layout paint style;
 }
 
 .product-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .product-thumb.placeholder {
@@ -590,6 +652,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .product-name {
@@ -644,6 +707,8 @@ onMounted(() => {
   padding: 16px;
   background: #fff;
   box-shadow: 0 8px 20px rgba(76, 58, 50, 0.06);
+  content-visibility: auto;
+  contain-intrinsic-size: 180px;
 }
 
 .mobile-product-top {
@@ -663,12 +728,14 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  contain: layout paint style;
 }
 
 .mobile-product-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .mobile-product-thumb.placeholder {
@@ -757,6 +824,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  contain: layout paint style;
 }
 
 .image-preview {
@@ -764,6 +832,18 @@ onMounted(() => {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.image-preview-placeholder {
+  width: 110px;
+  height: 110px;
+  border-radius: 16px;
+  border: 1px solid #f1e6e1;
+  background: #fcfaf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
 }
 
 .profile-input-label {
