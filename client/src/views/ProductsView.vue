@@ -141,7 +141,7 @@
 
           <div v-else class="products-grid">
             <article
-              v-for="product in displayedProducts"
+              v-for="product in visibleProducts"
               :key="product.id"
               v-memo="[product.id, product.finalPrice]"
               class="product-card"
@@ -152,10 +152,11 @@
               >
                 <div class="product-image-wrap">
                   <img
-                    :src="product.image_url || fallbackImage"
+                    :src="getOptimizedImage(product.image_url)"
                     :alt="product.name"
                     class="product-image"
                     loading="lazy"
+                    decoding="async"
                   />
                 </div>
 
@@ -166,15 +167,9 @@
                     {{ product.promoLabel }}
                   </div>
 
-                  <div class="meta-list">
-                    <span v-if="product.type">{{ formatLabel(product.type) }}</span>
-                    <span v-if="product.style">{{ formatLabel(product.style) }}</span>
-                    <span v-if="product.color">{{ formatLabel(product.color) }}</span>
-                  </div>
-
                   <div class="price-block">
                     <p v-if="product.hasPromo" class="old-price">{{ product.oldPrice }} RON</p>
-                    <p class="price">{{ product.finalPrice }} RON</p>
+                    <p class="price">{{ product.finalPrice }} lei</p>
                   </div>
                 </div>
               </RouterLink>
@@ -197,7 +192,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductsStore } from '@/stores/products'
 import { useAuthStore } from '@/stores/auth'
@@ -220,8 +215,25 @@ const selectedStyle = ref('')
 const selectedColor = ref('')
 const onlyInStock = ref(false)
 const priceRange = ref(500)
+const visibleCount = ref(8)
 
 const userBirthDate = computed(() => authStore.user?.birth_date || null)
+
+function handleScroll() {
+  const scrollBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200
+
+  if (scrollBottom) {
+    visibleCount.value += 8
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 
 function normalizeValue(value) {
   return String(value || '')
@@ -231,16 +243,23 @@ function normalizeValue(value) {
     .toLowerCase()
 }
 
-function formatLabel(value) {
-  const text = String(value || '').trim()
-  if (!text) return ''
-  return text.charAt(0).toUpperCase() + text.slice(1)
-}
+const visibleProducts = computed(() => {
+  return displayedProducts.value.slice(0, visibleCount.value)
+})
 
 const normalizedProducts = computed(() => {
-  return (productsStore.products || []).map((product) =>
-    getProductPromoData(product, userBirthDate.value),
-  )
+  return (productsStore.products || []).map((product) => {
+    const promoProduct = getProductPromoData(product, userBirthDate.value)
+
+    return {
+      ...promoProduct,
+      _searchName: normalizeValue(product.name),
+      _searchDescription: normalizeValue(product.description),
+      _searchType: normalizeValue(product.type),
+      _searchStyle: normalizeValue(product.style),
+      _searchColor: normalizeValue(product.color),
+    }
+  })
 })
 
 const categories = computed(() => {
@@ -340,6 +359,16 @@ const rangeStyle = computed(() => {
   }
 })
 
+function getOptimizedImage(url) {
+  if (!url) return fallbackImage
+
+  if (url.includes('unsplash.com')) {
+    return `${url}${url.includes('?') ? '&' : '?'}auto=format&fit=crop&w=500&q=70`
+  }
+
+  return url
+}
+
 const displayedProducts = computed(() => {
   let filtered = normalizedProducts.value
 
@@ -349,19 +378,19 @@ const displayedProducts = computed(() => {
 
   if (selectedType.value) {
     filtered = filtered.filter(
-      (product) => normalizeValue(product.type) === normalizeValue(selectedType.value),
+      (product) => product._searchType === normalizeValue(selectedType.value),
     )
   }
 
   if (selectedStyle.value) {
     filtered = filtered.filter(
-      (product) => normalizeValue(product.style) === normalizeValue(selectedStyle.value),
+      (product) => product._searchStyle === normalizeValue(selectedStyle.value),
     )
   }
 
   if (selectedColor.value) {
     filtered = filtered.filter(
-      (product) => normalizeValue(product.color) === normalizeValue(selectedColor.value),
+      (product) => product._searchColor === normalizeValue(selectedColor.value),
     )
   }
 
@@ -373,12 +402,15 @@ const displayedProducts = computed(() => {
     const term = normalizeValue(searchTerm.value)
 
     filtered = filtered.filter((product) => {
-      return [product.name, product.description, product.type, product.style, product.color]
-        .filter(Boolean)
-        .some((value) => normalizeValue(value).includes(term))
+      return (
+        product._searchName.includes(term) ||
+        product._searchDescription.includes(term) ||
+        product._searchType.includes(term) ||
+        product._searchStyle.includes(term) ||
+        product._searchColor.includes(term)
+      )
     })
   }
-
   filtered = filtered.filter(
     (product) => Number(product.finalPrice || 0) <= Number(priceRange.value),
   )
@@ -643,22 +675,27 @@ onMounted(() => {
 .products-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 24px;
+  gap: 15px;
 }
 
 .product-card {
   background: #ffffff;
-  border: 1px solid #f1e6e1;
+  border: 2px solid #f1e6e1;
   border-radius: 20px;
   overflow: hidden;
-  transition: 0.2s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
   display: flex;
   flex-direction: column;
+  content-visibility: auto;
+  contain-intrinsic-size: 360px 420px;
+  will-change: transform;
 }
 
 .product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 24px rgba(160, 120, 120, 0.1);
+  transform: translate3d(0, -4px, 0);
+  box-shadow: 0 8px 18px rgba(160, 120, 120, 0.08);
 }
 
 .card-link {
@@ -668,7 +705,7 @@ onMounted(() => {
 }
 
 .product-image-wrap {
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1 / 0.8;
   background: #fdf1f4;
   overflow: hidden;
 }
@@ -737,6 +774,9 @@ onMounted(() => {
   color: #c48797;
   font-weight: 700;
   font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .card-actions {

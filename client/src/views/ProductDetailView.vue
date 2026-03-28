@@ -1,8 +1,7 @@
 <template>
   <section class="pagina-detaliu-produs">
     <div class="container">
-      <div v-if="productsStore.loading" class="stare">Se încarcă produsul...</div>
-
+      <div v-if="productLoading" class="stare">Se încarcă produsul...</div>
       <div v-else-if="productsStore.error" class="stare eroare">
         {{ productsStore.error }}
       </div>
@@ -31,11 +30,15 @@
             <div class="card-imagine" @mousemove="handleImageMove" @mouseleave="resetImageMove">
               <img
                 v-if="productImage"
-                :src="productImage"
+                :src="getOptimizedImage(productImage, 900)"
                 :alt="promoProduct.name"
                 class="imagine-produs"
                 :style="imageStyle"
+                loading="eager"
+                decoding="async"
+                @load="imageLoaded = true"
               />
+
               <div v-else class="placeholder-imagine">🌸</div>
             </div>
           </div>
@@ -172,9 +175,11 @@
               <div class="related-image-wrap">
                 <img
                   v-if="item.image_url"
-                  :src="item.image_url"
+                  :src="getOptimizedImage(item.image_url, 420)"
                   :alt="item.name"
                   class="related-image"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div v-else class="related-placeholder">🌸</div>
               </div>
@@ -232,8 +237,19 @@ const careOpen = ref(false)
 const imageOffsetX = ref(0)
 const imageOffsetY = ref(0)
 const imageScale = ref(1)
+const productLoading = ref(true)
+const imageLoaded = ref(false)
 
 const userBirthDate = computed(() => authStore.user?.birth_date || null)
+function getOptimizedImage(url, width = 900) {
+  if (!url) return ''
+
+  if (url.includes('unsplash.com')) {
+    return `${url}${url.includes('?') ? '&' : '?'}auto=format&fit=crop&w=${width}&q=75`
+  }
+
+  return url
+}
 
 const promoProduct = computed(() => {
   if (!productsStore.product) return null
@@ -397,8 +413,10 @@ function goToProduct(slug) {
 }
 
 onMounted(async () => {
+  productLoading.value = true
   await productsStore.fetchProductBySlug(route.params.slug)
-  await fetchRelatedProducts()
+  productLoading.value = false
+  fetchRelatedProducts()
   await nextTick()
 })
 
@@ -408,8 +426,10 @@ watch(
     if (newSlug) {
       resetQuantity()
       resetImageMove()
+      productLoading.value = true
       await productsStore.fetchProductBySlug(newSlug)
-      await fetchRelatedProducts()
+      productLoading.value = false
+      fetchRelatedProducts()
     }
   },
 )

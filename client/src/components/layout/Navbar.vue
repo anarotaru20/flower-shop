@@ -52,7 +52,9 @@
               </button>
             </template>
 
-            <div v-else class="search-no-results">Nu am găsit produse pentru „{{ searchQuery }}”</div>
+            <div v-else class="search-no-results">
+              Nu am găsit produse pentru „{{ searchQuery }}”
+            </div>
           </div>
         </div>
 
@@ -73,6 +75,13 @@
                 <v-icon size="20">mdi-account-outline</v-icon>
               </div>
               <span class="nav-label">Profil</span>
+            </RouterLink>
+
+            <RouterLink v-if="isAdmin" to="/admin" class="nav-item">
+              <div class="nav-icon-wrap">
+                <v-icon size="20">mdi-shield-crown-outline</v-icon>
+              </div>
+              <span class="nav-label">Admin</span>
             </RouterLink>
 
             <button class="nav-item logout-btn" @click="handleLogout">
@@ -211,6 +220,7 @@ const searchQuery = ref('')
 const showSuggestions = ref(false)
 const searchRef = ref(null)
 const isQrPage = computed(() => route.path.startsWith('/qr'))
+const isAdmin = computed(() => auth.user?.role === 'admin')
 
 watch(
   () => route.fullPath,
@@ -762,6 +772,22 @@ function handleLogout() {
     justify-content: flex-start;
   }
 }
+@media (max-width: 768px) {
+  .navbar-top {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .search-area {
+    grid-column: 1 / -1;
+  }
+
+  .nav-links {
+    justify-content: flex-end;
+  }
+}
 
 @media (max-width: 768px) {
   .category-row {
@@ -784,6 +810,32 @@ function handleLogout() {
 
   .search-input {
     font-size: 14px;
+  }
+}
+@media (max-width: 768px) {
+  .navbar-top {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* logo stânga */
+  .brand {
+    grid-column: 1;
+  }
+
+  /* icons dreapta */
+  .nav-links {
+    grid-column: 2;
+    justify-content: flex-end;
+  }
+
+  /* 🔥 search pe rand nou, sub tot */
+  .search-area {
+    grid-column: 1 / -1;
+    order: 3;
+    margin-top: 6px;
   }
 }
 </style>

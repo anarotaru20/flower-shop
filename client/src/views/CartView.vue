@@ -24,7 +24,13 @@
 
           <article v-for="item in promoCartItems" :key="item.id" class="cart-item">
             <div class="item-image">
-              <img v-if="item.image_url" :src="item.image_url" :alt="item.name" loading="lazy" />
+              <img
+                v-if="item.image_url"
+                :src="getOptimizedImage(item.image_url)"
+                :alt="item.name"
+                loading="lazy"
+                decoding="async"
+              />
               <div v-else class="fallback-emoji">🌸</div>
             </div>
 
@@ -94,6 +100,7 @@
             <span>Total</span>
             <span>{{ finalCartTotal.toFixed(2) }} lei</span>
           </div>
+
           <div class="summary-row">
             <span>Transport</span>
             <span>Calculat la finalizarea comenzii</span>
@@ -101,8 +108,12 @@
 
           <RouterLink to="/products" class="back-home">← Continuă cumparaturile</RouterLink>
 
+          <p v-if="!isAuthenticated" class="auth-warning">
+            ⚠️ Trebuie să fii autentificat pentru a comanda.
+          </p>
+
           <v-btn class="checkout-order-btn" color="primary" @click="goToCheckout">
-            Continua spre plată
+            {{ isAuthenticated ? 'Continua spre plată' : 'Intră în cont / Înregistrare' }}
           </v-btn>
 
           <button class="clear-btn" @click="cartStore.clearCart()">Golește coșul</button>
@@ -130,8 +141,19 @@ const toast = ref({
   message: '',
 })
 
+const isAuthenticated = computed(() => authStore.isAuthenticated)
 const userBirthDate = computed(() => authStore.user?.birth_date || null)
 const hasBirthdayPromo = computed(() => isBirthdayWeek(userBirthDate.value))
+
+function getOptimizedImage(url) {
+  if (!url) return ''
+
+  if (url.includes('unsplash.com')) {
+    return `${url}${url.includes('?') ? '&' : '?'}auto=format&fit=crop&w=320&q=70`
+  }
+
+  return url
+}
 
 const promoCartItems = computed(() => {
   return (cartStore.items || []).map((item) => getProductPromoData(item, userBirthDate.value))
@@ -172,6 +194,11 @@ async function validateCartStock() {
 }
 
 async function goToCheckout() {
+  if (!isAuthenticated.value) {
+    router.push('/login')
+    return
+  }
+
   const invalidItem = await validateCartStock()
 
   if (invalidItem) {
@@ -279,8 +306,9 @@ async function goToCheckout() {
   border-radius: 24px;
   padding: 20px;
   align-items: center;
+  content-visibility: auto;
+  contain-intrinsic-size: 160px;
 }
-
 .item-image {
   height: 120px;
   border-radius: 18px;
@@ -289,6 +317,7 @@ async function goToCheckout() {
   align-items: center;
   justify-content: center;
   font-size: 42px;
+  overflow: hidden;
 }
 
 .item-image img {
@@ -296,6 +325,8 @@ async function goToCheckout() {
   height: 100%;
   border-radius: 18px;
   object-fit: cover;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .fallback-emoji {
@@ -492,6 +523,17 @@ async function goToCheckout() {
   text-decoration: none;
   transition: all 0.2s ease;
   display: flex;
+}
+
+.auth-warning {
+  margin: 12px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #b9364e;
+  background: #fff1f4;
+  border: 1px solid #f3c4cd;
+  border-radius: 10px;
+  padding: 10px 12px;
 }
 
 @media (max-width: 900px) {

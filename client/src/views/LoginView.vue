@@ -36,12 +36,7 @@
           <form class="auth-form" @submit.prevent="handleSubmit">
             <div class="form-group">
               <label for="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                placeholder="Emailul tau"
-                v-model.trim="form.email"
-              />
+              <input id="email" type="email" placeholder="Emailul tau" v-model.trim="form.email" />
             </div>
 
             <div class="form-group">
@@ -216,7 +211,7 @@ async function handleSubmit() {
   }
 
   try {
-    await auth.login(form.value)
+    const user = await auth.login(form.value)
 
     loginSuccess.value = 'Te-ai autentificat cu succes.'
 
@@ -225,7 +220,11 @@ async function handleSubmit() {
       password: '',
     }
 
-    router.push('/')
+    if (auth.user?.role === 'admin') {
+      router.push('/admin')
+    } else {
+      router.push('/')
+    }
   } catch (e) {
     loginError.value = 'Email sau parolă incorectă.'
   }
@@ -531,7 +530,7 @@ async function handleForgotSubmit() {
 .auth-button {
   height: 56px;
   border: none;
-  border-radius:10px;
+  border-radius: 10px;
   margin-top: 15px;
   margin-bottom: 10px;
   background: #4c3a32;
