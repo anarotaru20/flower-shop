@@ -8,6 +8,12 @@ function formatDate(value) {
   return new Date(value).toLocaleString("ro-RO");
 }
 
+function formatPaymentStatus(value) {
+  if (value === "paid") return "Platit";
+  if (value === "unpaid") return "Neplatit";
+  return value || "-";
+}
+
 function getUnitPrice(item) {
   return Number(item.price || 0);
 }
@@ -219,7 +225,7 @@ function generateInvoicePdf(res, order) {
     .fillColor("#4b5563")
     .text(`Serie/Numar: ${order.invoice_number || "-"}`, 50, 80)
     .text(`Data emiterii: ${formatDate(order.created_at)}`, 50, 97)
-    .text(`Status plata: ${order.payment_status || "-"}`, 50, 114);
+    .text(`Status plata: ${formatPaymentStatus(order.payment_status)}`, 50, 114);
 
   doc
     .font("Helvetica-Bold")

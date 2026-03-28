@@ -1178,10 +1178,6 @@ function formatBirthDate(value) {
   return formatLocalDateRo(value)
 }
 
-const formatEventDatePick = (value) => {
-  return formatLocalDateRo(value)
-}
-
 function formatEventDate(value) {
   return (
     formatLocalDateRo(value, {
@@ -1213,20 +1209,9 @@ function formatInvoiceDate(date) {
 }
 
 function formatPaymentStatusInvoice(status) {
-  if (status === 'paid') return 'Achitată'
-  if (status === 'unpaid') return 'Neachitată'
+  if (status === 'paid') return 'Plătită'
+  if (status === 'unpaid') return 'Nepătită'
   return '-'
-}
-
-function formatInvoicePaymentStatus(status) {
-  const map = {
-    paid: 'Achitată',
-    pending: 'În așteptare',
-    failed: 'Eșuată',
-    refunded: 'Rambursată',
-  }
-
-  return map[status] || status || '-'
 }
 
 const snackbar = reactive({
@@ -1234,16 +1219,6 @@ const snackbar = reactive({
   text: '',
 })
 
-function formatPaymentStatus(status) {
-  const map = {
-    paid: 'Plătită',
-    pending: 'În așteptare',
-    failed: 'Eșuată',
-    refunded: 'Rambursată',
-  }
-
-  return map[status] || status || '-'
-}
 const confirmDialog = reactive({
   open: false,
   title: '',
@@ -1658,10 +1633,6 @@ function formatBudget(min, max) {
 
 function formatPrice(val) {
   return `${Number(val).toFixed(2)} lei`
-}
-
-function formatDate(date) {
-  return new Date(date).toLocaleString('ro-RO')
 }
 
 function beautifyEventType(value) {
