@@ -134,4 +134,24 @@ async function handlePay() {
   justify-content: flex-end;
   margin-top: 16px;
 }
+@media (max-width: 600px) {
+  .stripe-wrap {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .payment-element {
+    min-height: 70px;
+    width: 100%;
+  }
+
+  .paycard-actions {
+    justify-content: stretch;
+  }
+
+  .paycard-btn {
+    width: 100%;
+    padding: 16px;
+  }
+}
 </style>

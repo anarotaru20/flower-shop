@@ -705,4 +705,66 @@ async function handleStripePaid() {
   background: #b9364e;
   color: white;
 }
+@media (max-width: 600px) {
+  .checkout-page {
+    padding: 0 6px;
+  }
+
+  .checkout-card,
+  .summary-card {
+    padding: 16px;
+    border-radius: 18px;
+    position: static;
+    top: unset;
+  }
+
+  .section-title {
+    font-size: 20px;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .checkout-btn,
+  .back-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .summary-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .item-total {
+    align-items: flex-start;
+  }
+
+  .summary-row,
+  .summary-total {
+    font-size: 14px;
+  }
+
+  .qr-image {
+    width: 180px;
+    height: 180px;
+  }
+
+  .empty-cart-one {
+    padding: 32px 16px;
+  }
+
+  .stripe-dialog-card {
+    padding: 8px;
+    border-radius: 18px;
+  }
+
+  :deep(.payment-radio-group .v-selection-control-group) {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
 </style>
