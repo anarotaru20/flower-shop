@@ -50,25 +50,36 @@ const payments = require("./routes/payments");
 app.use("/payments", payments);
 
 // Notifications
+const cron = require("node-cron");
 const { runReminderJob } = require("./jobs/reminderJob");
-runReminderJob();
+
+cron.schedule(
+  "0 9 * * *",
+  async () => {
+    console.log("Running daily reminder job at 09:00 Europe/Bucharest");
+    await runReminderJob();
+  },
+  {
+    timezone: "Europe/Bucharest",
+  },
+);
 
 // QR Codes
 const qr = require("./routes/qr");
 app.use("/qr", qr);
 
 // Admin
-const adminDashboardRoutes = require('./routes/adminDashboard')
-app.use('/admin/dashboard', adminDashboardRoutes)
+const adminDashboardRoutes = require("./routes/adminDashboard");
+app.use("/admin/dashboard", adminDashboardRoutes);
 
-const adminProductsRoutes = require('./routes/adminProducts')
-app.use('/admin/products', adminProductsRoutes)
+const adminProductsRoutes = require("./routes/adminProducts");
+app.use("/admin/products", adminProductsRoutes);
 
-const adminOrdersRoutes = require('./routes/adminOrders')
-app.use('/admin/orders', adminOrdersRoutes)
+const adminOrdersRoutes = require("./routes/adminOrders");
+app.use("/admin/orders", adminOrdersRoutes);
 
-const adminUsersRoutes = require('./routes/adminUsers')
-app.use('/admin/users', adminUsersRoutes)
+const adminUsersRoutes = require("./routes/adminUsers");
+app.use("/admin/users", adminUsersRoutes);
 
 app.use((req, res) => {
   logger.warn(`Route not found: ${req.method} ${req.originalUrl}`);
