@@ -1,7 +1,14 @@
 <template>
   <v-container class="py-8">
     <div class="checkout-page">
-      <div v-if="orderPlaced || (qrImage && !stripeDialog)" class="success-wrapper">
+      <div v-if="!cartItems.length && !orderPlaced" class="empty-cart-one">
+        <div class="empty-icon">🛒</div>
+        <h2>Coșul este gol</h2>
+        <p>Adaugă produse din shop și revino aici pentru checkout.</p>
+        <RouterLink to="/products" class="shop-link">Mergi la magazin</RouterLink>
+      </div>
+
+      <div v-else-if="orderPlaced" class="success-wrapper">
         <v-card class="checkout-card success-card" elevation="0">
           <v-card-title class="section-title">Comanda a fost plasata cu succes</v-card-title>
 
@@ -20,23 +27,16 @@
             </div>
 
             <v-alert v-else type="info" variant="tonal" color="warning" class="mt-4">
-              Se generează codul QR...
+              Comanda a fost plasata, dar nu exista un QR disponibil pentru aceasta comanda.
             </v-alert>
 
             <div class="actions mt-6">
-              <v-btn variant="outlined" class="back-btn" @click="goToProducts">
-                Continua cumparaturile
-              </v-btn>
+              <v-btn variant="outlined" class="back-btn" @click="goToProducts"
+                >Continua cumparaturile</v-btn
+              >
             </div>
           </v-card-text>
         </v-card>
-      </div>
-
-      <div v-else-if="!cartItems.length" class="empty-cart-one">
-        <div class="empty-icon">🛒</div>
-        <h2>Coșul este gol</h2>
-        <p>Adaugă produse din shop și revino aici pentru checkout.</p>
-        <RouterLink to="/products" class="shop-link">Mergi la magazin</RouterLink>
       </div>
 
       <v-row v-else class="mt-2" align="start">
@@ -373,6 +373,10 @@ function goBackToCart() {
 
 function goToProducts() {
   router.push('/products')
+}
+
+function goToOrders() {
+  router.push('/orders')
 }
 
 async function generateQrForOrder(orderId) {
