@@ -123,6 +123,13 @@
               <span class="nav-label">Profil</span>
             </RouterLink>
 
+            <RouterLink v-if="isAdmin" to="/admin" class="nav-item">
+              <div class="nav-icon-wrap">
+                <v-icon size="20">mdi-shield-crown-outline</v-icon>
+              </div>
+              <span class="nav-label">Admin</span>
+            </RouterLink>
+
             <button class="nav-item logout-btn" @click="handleLogout">
               <div class="nav-icon-wrap">
                 <v-icon size="20">mdi-logout-variant</v-icon>
