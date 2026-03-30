@@ -399,6 +399,57 @@ watch(hasEligibleQrProducts, (value) => {
   }
 })
 
+// async function handleSubmit() {
+//   if (!validateForm()) return
+
+//   loading.value = true
+//   submitError.value = ''
+//   qrStore.clearQr()
+
+//   try {
+//     const payload = {
+//       customer_name: form.customer_name.trim(),
+//       phone: form.phone.trim(),
+//       shipping_address: form.shipping_address.trim(),
+//       gift_message: form.gift_message.trim(),
+//       payment_method: form.payment_method,
+//       promo_type: hasBirthdayPromo.value ? 'birthday_week' : null,
+//       promo_discount_percent: hasBirthdayPromo.value ? 10 : 0,
+//       original_total: originalCartTotal.value,
+//       final_total: finalCartTotal.value,
+//       items: promoCartItems.value.map((item) => ({
+//         product_id: item.id,
+//         quantity: item.quantity,
+//         unit_price: item.hasPromo ? item.finalPrice : item.price,
+//         original_unit_price: item.price,
+//         discount_percent: item.discountPercent || 0,
+//       })),
+//     }
+
+//     const order = await ordersStore.addOrder(payload)
+
+//     await generateQrForOrder(order.id)
+
+//     if (form.payment_method === 'card') {
+//       createdOrderId.value = order.id
+//       stripeDialog.value = true
+//       return
+//     }
+
+//     cartStore.clearCart()
+//     await productsStore.fetchProducts()
+//     orderPlaced.value = true
+//   } catch (error) {
+//     submitError.value =
+//       ordersStore.error ||
+//       error.response?.data?.message ||
+//       error.message ||
+//       'A aparut o eroare la plasarea comenzii.'
+//   } finally {
+//     loading.value = false
+//   }
+// }
+
 async function handleSubmit() {
   if (!validateForm()) return
 
@@ -438,7 +489,12 @@ async function handleSubmit() {
 
     cartStore.clearCart()
     await productsStore.fetchProducts()
-    orderPlaced.value = true
+
+    if (qr.value?.token && form.gift_message.trim()) {
+      router.replace(`/qr/${qr.value.token}`)
+    } else {
+      router.replace('/orders')
+    }
   } catch (error) {
     submitError.value =
       ordersStore.error ||
@@ -450,16 +506,28 @@ async function handleSubmit() {
   }
 }
 
+// async function handleStripePaid() {
+//   finishingOrder.value = true
+//   orderPlaced.value = true
+//   stripeDialog.value = false
+//   cartStore.clearCart()
+
+//   try {
+//     await productsStore.fetchProducts()
+//   } finally {
+//     finishingOrder.value = false
+//   }
+// }
+
 async function handleStripePaid() {
-  finishingOrder.value = true
-  orderPlaced.value = true
   stripeDialog.value = false
   cartStore.clearCart()
+  await productsStore.fetchProducts()
 
-  try {
-    await productsStore.fetchProducts()
-  } finally {
-    finishingOrder.value = false
+  if (qr.value?.token && form.gift_message.trim()) {
+    router.replace(`/qr/${qr.value.token}`)
+  } else {
+    router.replace('/orders')
   }
 }
 </script>
