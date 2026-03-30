@@ -1,7 +1,7 @@
 <template>
   <v-container class="py-8">
     <div class="checkout-page">
-      <div v-if="!cartItems.length && !orderPlaced" class="empty-cart-one">
+      <div v-if="!cartItems.length && !orderPlaced && !finishingOrder" class="empty-cart-one">
         <div class="empty-icon">🛒</div>
         <h2>Coșul este gol</h2>
         <p>Adaugă produse din shop și revino aici pentru checkout.</p>
@@ -228,6 +228,7 @@ const showStripePayment = ref(false)
 const loading = ref(false)
 const submitError = ref('')
 const orderPlaced = ref(false)
+const finishingOrder = ref(false)
 
 const form = reactive({
   customer_name: '',
@@ -450,10 +451,16 @@ async function handleSubmit() {
 }
 
 async function handleStripePaid() {
+  finishingOrder.value = true
   orderPlaced.value = true
   stripeDialog.value = false
   cartStore.clearCart()
-  await productsStore.fetchProducts()
+
+  try {
+    await productsStore.fetchProducts()
+  } finally {
+    finishingOrder.value = false
+  }
 }
 </script>
 
