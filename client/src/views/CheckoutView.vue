@@ -450,9 +450,10 @@ async function handleSubmit() {
 }
 
 async function handleStripePaid() {
+  orderPlaced.value = true
+  stripeDialog.value = false
   cartStore.clearCart()
   await productsStore.fetchProducts()
-  orderPlaced.value = true
 }
 </script>
 
