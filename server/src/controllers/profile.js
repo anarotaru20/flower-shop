@@ -1,18 +1,42 @@
 const profileRepo = require("../repo/profile");
 
+// async function getProfile(req, res, next) {
+//   try {
+//     const userId = req.user.id;
+
+//     const profile = await profileRepo.getProfileById(userId);
+
+//     if (!profile) {
+//       return res.status(404).json({ message: "Profile not found" });
+//     }
+
+//     res.status(200).json(profile);
+//   } catch (error) {
+//     next(error);
+//   }
+// }
+
 async function getProfile(req, res, next) {
   try {
-    const userId = req.user.id;
+    console.time("getProfile total")
 
-    const profile = await profileRepo.getProfileById(userId);
+    const userId = req.user.id
+
+    console.time("profile query")
+    const profile = await profileRepo.getProfileById(userId)
+    console.timeEnd("profile query")
 
     if (!profile) {
-      return res.status(404).json({ message: "Profile not found" });
+      console.timeEnd("getProfile total")
+      return res.status(404).json({ message: "Profile not found" })
     }
 
-    res.status(200).json(profile);
+    console.timeEnd("getProfile total")
+
+    res.status(200).json(profile)
   } catch (error) {
-    next(error);
+    console.timeEnd("getProfile total")
+    next(error)
   }
 }
 

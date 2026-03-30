@@ -50,18 +50,58 @@ async function register(req, res, next) {
   }
 }
 
+// async function login(req, res, next) {
+//   try {
+//     const { email, password } = req.body;
+
+//     const { data, error } = await supabase.auth.signInWithPassword({
+//       email,
+//       password,
+//     });
+
+//     if (error) {
+//       return res.status(400).json({ message: error.message });
+//     }
+
+//     res.status(200).json({
+//       message: "Login successful",
+//       user: {
+//         id: data.user.id,
+//         email: data.user.email,
+//       },
+//       session: data.session
+//         ? {
+//             access_token: data.session.access_token,
+//             refresh_token: data.session.refresh_token,
+//             expires_in: data.session.expires_in,
+//             token_type: data.session.token_type,
+//           }
+//         : null,
+//     });
+//   } catch (error) {
+//     next(error);
+//   }
+// }
+
 async function login(req, res, next) {
   try {
-    const { email, password } = req.body;
+    console.time("login total")
 
+    const { email, password } = req.body
+
+    console.time("supabase signIn")
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-    });
+    })
+    console.timeEnd("supabase signIn")
 
     if (error) {
-      return res.status(400).json({ message: error.message });
+      console.timeEnd("login total")
+      return res.status(400).json({ message: error.message })
     }
+
+    console.timeEnd("login total")
 
     res.status(200).json({
       message: "Login successful",
@@ -77,9 +117,10 @@ async function login(req, res, next) {
             token_type: data.session.token_type,
           }
         : null,
-    });
+    })
   } catch (error) {
-    next(error);
+    console.timeEnd("login total")
+    next(error)
   }
 }
 
