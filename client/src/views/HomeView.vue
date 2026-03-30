@@ -614,13 +614,11 @@ function includesAny(text, values = []) {
 function getOptimizedImage(url, width = 800) {
   if (!url) return ''
 
-  const separator = url.includes('?') ? '&' : '?'
-
   if (url.includes('unsplash.com')) {
-    return `${url}${separator}auto=format&fit=crop&w=${width}&q=75`
+    return `${url}${url.includes('?') ? '&' : '?'}auto=format&fit=crop&w=${width}&q=75`
   }
 
-  return `${url}${separator}width=${width}&quality=75`
+  return url
 }
 
 function scoreQuizProduct(product, result) {
