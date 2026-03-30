@@ -116,6 +116,8 @@
                 class="category-image"
                 loading="lazy"
                 decoding="async"
+                width="700"
+                height="900"
               />
               <div v-else class="category-placeholder">🌸</div>
             </div>
@@ -157,6 +159,8 @@
                   class="product-image"
                   loading="lazy"
                   decoding="async"
+                  width="520"
+                  height="614"
                 />
               </RouterLink>
 
@@ -505,6 +509,8 @@
                 class="quiz-result-image"
                 loading="lazy"
                 decoding="async"
+                width="220"
+                height="220"
               />
 
               <div class="quiz-result-content">
@@ -608,11 +614,13 @@ function includesAny(text, values = []) {
 function getOptimizedImage(url, width = 800) {
   if (!url) return ''
 
+  const separator = url.includes('?') ? '&' : '?'
+
   if (url.includes('unsplash.com')) {
-    return `${url}${url.includes('?') ? '&' : '?'}auto=format&fit=crop&w=${width}&q=75`
+    return `${url}${separator}auto=format&fit=crop&w=${width}&q=75`
   }
 
-  return url
+  return `${url}${separator}width=${width}&quality=75`
 }
 
 function scoreQuizProduct(product, result) {
@@ -727,10 +735,14 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
-
 .home {
-  font-family: 'Inter', sans-serif;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   color: #1f1a17;
 }
 
@@ -741,7 +753,7 @@ h3,
 .footer-logo,
 .hero-editorial-card h2,
 .hero-quiz-card h3 {
-  font-family: 'Playfair Display', serif;
+  font-family: Georgia, 'Times New Roman', serif;
   font-weight: 500;
 }
 
@@ -1558,7 +1570,13 @@ h3,
   margin: 0 0 24px;
   color: #111827;
   font-size: 24px;
-  font-family: 'Inter', sans-serif;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   font-weight: 800;
 }
 
