@@ -168,7 +168,7 @@
                   </div>
 
                   <div class="price-block">
-                    <p v-if="product.hasPromo" class="old-price">{{ product.oldPrice }} RON</p>
+                    <p v-if="product.hasPromo" class="old-price">{{ product.oldPrice }} lei</p>
                     <p class="price">{{ product.finalPrice }} lei</p>
                   </div>
                 </div>
@@ -771,7 +771,7 @@ onMounted(() => {
 
 .price {
   margin: 0;
-  color: #c48797;
+  color: #b9364e;
   font-weight: 700;
   font-size: 18px;
   display: flex;
@@ -789,7 +789,7 @@ onMounted(() => {
   border: none;
   border-radius: 12px;
   padding: 12px 14px;
-  background: #d6436e;
+  background: #b9364e;
   color: #ffffff;
   font-size: 14px;
   font-weight: 700;
