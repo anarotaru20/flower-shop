@@ -1,7 +1,7 @@
 <template>
   <v-container class="py-8">
     <div class="checkout-page">
-      <div v-if="orderPlaced || qrImage" class="success-wrapper">
+      <div v-if="orderPlaced || (qrImage && !stripeDialog)" class="success-wrapper">
         <v-card class="checkout-card success-card" elevation="0">
           <v-card-title class="section-title">Comanda a fost plasata cu succes</v-card-title>
 
