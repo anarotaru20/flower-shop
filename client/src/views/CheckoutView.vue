@@ -435,9 +435,9 @@ async function handleSubmit() {
       return
     }
 
+    orderPlaced.value = true
     cartStore.clearCart()
     await productsStore.fetchProducts()
-    orderPlaced.value = true
   } catch (error) {
     submitError.value =
       ordersStore.error ||
