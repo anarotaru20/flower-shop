@@ -320,8 +320,6 @@ async function handleSubmit() {
 
     await auth.register(payload)
 
-    auth.successMessage = ''
-
     form.value = {
       first_name: '',
       last_name: '',

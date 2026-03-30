@@ -211,7 +211,7 @@ async function handleSubmit() {
   }
 
   try {
-    const user = await auth.login(form.value)
+    const data = await auth.login(form.value)
 
     loginSuccess.value = 'Te-ai autentificat cu succes.'
 
@@ -220,7 +220,9 @@ async function handleSubmit() {
       password: '',
     }
 
-    if (auth.user?.role === 'admin') {
+    const role = data?.user?.role || data?.profile?.role || null
+
+    if (role === 'admin') {
       router.push('/admin')
     } else {
       router.push('/')
@@ -229,7 +231,6 @@ async function handleSubmit() {
     loginError.value = 'Email sau parolă incorectă.'
   }
 }
-
 async function handleForgotSubmit() {
   clearForgotMessages()
 
