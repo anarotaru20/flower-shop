@@ -53,9 +53,7 @@ export const useAuthStore = defineStore('auth', {
 
         if (this.token) {
           localStorage.setItem('token', this.token)
-            this.fetchProfile().catch(() => {
-    this.user = null
-  })
+          await this.fetchProfile()
         } else {
           this.user = null
           localStorage.removeItem('token')
@@ -84,7 +82,9 @@ export const useAuthStore = defineStore('auth', {
 
         if (this.token) {
           localStorage.setItem('token', this.token)
-          await this.fetchProfile()
+          this.fetchProfile().catch(() => {
+            this.user = null
+          })
         } else {
           this.user = null
           localStorage.removeItem('token')
