@@ -57,7 +57,7 @@
             </div>
 
             <button type="submit" class="auth-button">
-              {{ auth.loading ? 'Se procesează...' : 'Autentificare' }}
+              {{ auth.loading ? 'Autentificare...' : 'Autentificare' }}
             </button>
           </form>
 
@@ -213,20 +213,19 @@ async function handleSubmit() {
   try {
     const data = await auth.login(form.value)
 
-    loginSuccess.value = 'Te-ai autentificat cu succes.'
-
     form.value = {
       email: '',
       password: '',
     }
 
-    const role = data?.user?.role || data?.profile?.role || null
+    // const role = data?.user?.role || data?.profile?.role || null
 
-    if (role === 'admin') {
-      router.push('/admin')
-    } else {
-      router.push('/')
-    }
+    // if (role === 'admin') {
+    //   router.push('/admin')
+    // } else {
+    //   router.push('/')
+    // }
+    router.replace('/')
   } catch (e) {
     loginError.value = 'Email sau parolă incorectă.'
   }
