@@ -98,10 +98,10 @@ const typeOptions = [
 ]
 
 const budgetOptions = [
-  { label: '5 - 30 RON', value: 'extra-small' },
-  { label: '30 - 70 RON', value: 'small' },
-  { label: '70 - 150 RON', value: 'medium' },
-  { label: '150 - 300 RON', value: 'premium' },
+  { label: '50 - 100 RON', value: 'extra-small' },
+  { label: '100 - 150 RON', value: 'small' },
+  { label: '150 - 200 RON', value: 'medium' },
+  { label: '250 - 300 RON', value: 'premium' },
 ]
 
 const step = computed(() => state.step)
@@ -165,10 +165,10 @@ function handleSelect(value) {
 }
 
 function getBudgetRange(key) {
-  if (key === 'extra-small') return { budget_min: 5, budget_max: 30 }
-  if (key === 'small') return { budget_min: 30, budget_max: 70 }
-  if (key === 'medium') return { budget_min: 70, budget_max: 150 }
-  return { budget_min: 150, budget_max: 300 }
+  if (key === 'extra-small') return { budget_min: 50, budget_max: 100 }
+  if (key === 'small') return { budget_min: 100, budget_max: 150 }
+  if (key === 'medium') return { budget_min: 150, budget_max: 200 }
+  return { budget_min: 250, budget_max: 300 }
 }
 
 function resetQuiz() {
