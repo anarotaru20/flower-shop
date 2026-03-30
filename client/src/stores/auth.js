@@ -80,11 +80,20 @@ export const useAuthStore = defineStore('auth', {
         const accessToken = data?.session?.access_token ?? null
         this.token = accessToken
 
+        // if (this.token) {
+        //   localStorage.setItem('token', this.token)
+        //   this.fetchProfile().catch(() => {
+        //     this.user = null
+        //   })
+        // } else {
+        //   this.user = null
+        //   localStorage.removeItem('token')
+        // }
+
         if (this.token) {
           localStorage.setItem('token', this.token)
-          this.fetchProfile().catch(() => {
-            this.user = null
-          })
+
+          this.user = data.user // 🔥 AICI E CHEIA
         } else {
           this.user = null
           localStorage.removeItem('token')
