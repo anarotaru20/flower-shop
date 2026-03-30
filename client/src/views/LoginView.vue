@@ -57,7 +57,7 @@
             </div>
 
             <button type="submit" class="auth-button">
-              {{ auth.loading ? 'Se procesează...' : 'Autentificare' }}
+              {{ 'Autentificare' }}
             </button>
           </form>
 

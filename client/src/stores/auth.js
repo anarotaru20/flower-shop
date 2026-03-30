@@ -53,7 +53,9 @@ export const useAuthStore = defineStore('auth', {
 
         if (this.token) {
           localStorage.setItem('token', this.token)
-          await this.fetchProfile()
+            this.fetchProfile().catch(() => {
+    this.user = null
+  })
         } else {
           this.user = null
           localStorage.removeItem('token')

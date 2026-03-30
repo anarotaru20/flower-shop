@@ -63,6 +63,16 @@ cron.schedule(
     timezone: "Europe/Bucharest",
   },
 );
+// cron.schedule(
+//   "*/1 * * * *",
+//   async () => {
+//     console.log("TEST reminder job");
+//     await runReminderJob();
+//   },
+//   {
+//     timezone: "Europe/Bucharest",
+//   },
+// );
 
 // QR Codes
 const qr = require("./routes/qr");
